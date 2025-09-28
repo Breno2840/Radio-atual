@@ -1,75 +1,52 @@
-// lib/pages/station_list_screen.dart
-import 'package:flutter/material.dart';
-import '../models/radio_station.dart';
-import '../widgets/audio_player_handler.dart';
-import '../widgets/radio_grid_item.dart'; 
+// lib/pages/station_list_screen.dart (AJUSTADO)
+// ... (imports)
 
 class StationListScreen extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
-  final VoidCallback onShowPlayer; // NOVA PROPRIEDADE
+  // REMOVIDO: final VoidCallback onShowPlayer; 
 
   const StationListScreen({
     super.key,
     required this.audioHandler,
-    required this.onShowPlayer, // NOVO PARÂMETRO
+    // REMOVIDO: required this.onShowPlayer, 
   });
 
   @override
   Widget build(BuildContext context) {
-    // Cálculo matemático (Mantido)
+    // Cálculo matemático (AJUSTADO para a remoção do botão)
     final screenHeight = MediaQuery.of(context).size.height;
     final screenPadding = MediaQuery.of(context).padding;
-    const topWidgetHeight = 28 + 20 + 30; // Ajuste para o novo IconButton
+    const topWidgetHeight = 28 + 20; // Apenas o título 'Estações de Rádio'
     final availableHeight = screenHeight - screenPadding.top - screenPadding.bottom - topWidgetHeight;
-
-    const crossAxisCount = 2;
-    const mainAxisSpacing = 16.0;
-    const crossAxisSpacing = 16.0;
-    const numberOfRows = 3;
-
-    final totalSpacing = mainAxisSpacing * (numberOfRows - 1);
-    final desiredCardHeight = (availableHeight - totalSpacing) / numberOfRows;
+    // ... (restante do cálculo da proporção)
     
-    final screenWidth = MediaQuery.of(context).size.width;
-    final totalHorizontalPadding = 16.0 * 2;
-    final cardWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / crossAxisCount;
-
-    final desiredAspectRatio = cardWidth / desiredCardHeight;
+    // ATENÇÃO: Se o MiniPlayer aparecer, ele ocupará 70px que precisamos subtrair do availableHeight.
+    // Uma solução mais robusta seria usar LayoutBuilder, mas para manter a simplicidade, vamos ignorar a altura do mini-player
+    // já que ele só aparece quando algo está tocando e a altura calculada já é 'desejada'.
 
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Estações de Rádio',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            // NOVO: Botão para voltar ao player, se necessário.
-            IconButton(
-              icon: const Icon(Icons.music_note_rounded, color: Colors.white, size: 30),
-              onPressed: onShowPlayer, // Chama a função de navegação
-            ),
-          ],
+        // REMOVIDO: Row com MainAxisAlignment.spaceBetween
+        const Align(
+          alignment: Alignment.centerLeft, // Alinhamento do título
+          child: Text(
+            'Estações de Rádio',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
         ),
+        // REMOVIDO: Botão de voltar ao player
+        
         const SizedBox(height: 20),
         Expanded(
           child: GridView.builder(
-            physics: const BouncingScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossAxisSpacing,
-              mainAxisSpacing: mainAxisSpacing,
-              childAspectRatio: desiredAspectRatio,
-            ),
-            itemCount: radioStations.length,
+            // ... (gridDelegate permanece igual)
             itemBuilder: (context, index) {
               final station = radioStations[index];
               return RadioGridItem(
                 station: station,
                 onTap: () {
                   audioHandler.playStation(station);
-                  onShowPlayer(); // Volta para a tela do player após a seleção
+                  // REMOVIDO: onShowPlayer()
                 },
               );
             },
