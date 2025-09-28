@@ -1,7 +1,6 @@
 // lib/widgets/audio_player_handler.dart
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
-// Precisamos importar o modelo de dados
 import '../models/radio_station.dart'; 
 
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
