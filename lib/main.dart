@@ -1,50 +1,7 @@
-// lib/main.dart (Final)
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:audio_service/audio_service.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:palette_generator/palette_generator.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-
-// Importando os novos e velhos arquivos:
-import 'pages/player_screen.dart';
-import 'pages/station_list_screen.dart';
-import 'pages/main_screen.dart'; // NOVO IMPORT
-import 'models/radio_station.dart';
-import 'widgets/audio_player_handler.dart';
-
-// ... (main function permanece a mesma)
-
-Future<void> main() async {
-  // ... (código de inicialização e permissão)
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  // ... (System UI settings)
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent, statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light, systemNavigationBarIconBrightness: Brightness.light));
-  
-  if (Platform.isAndroid) {
-    final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    if (androidInfo.version.sdkInt >= 33) {
-      await Permission.notification.request();
-    }
-  }
-  
-  final audioHandler = await AudioService.init(
-    builder: () => AudioPlayerHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.calculadora.my.channel.audio',
-      androidNotificationChannelName: 'Reprodução de Áudio',
-      androidNotificationOngoing: true,
-      androidStopForegroundOnPause: true,
-    )
-  );
-  
-  runApp(MyApp(audioHandler: audioHandler));
-}
-
+// lib/main.dart (Atualizado para incluir o Mini-Player no Scaffold)
+// ... (todos os imports permanecem iguais)
+import 'widgets/mini_player.dart'; // NOVO IMPORT
+// ...
 
 class MyApp extends StatefulWidget {
   final AudioPlayerHandler audioHandler;
@@ -55,66 +12,92 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // ... (variáveis e _updateBackgroundColors permanecem iguais)
   Color _startColor = const Color(0xFF1D244D);
   Color _endColor = const Color(0xFF000000);
   Uri? _lastArtUri;
   
-  Future<void> _updateBackgroundColors(Uri artUri) async {
-    final provider = CachedNetworkImageProvider(artUri.toString());
-    final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
-    if (mounted) {
-      setState(() {
-        _startColor = paletteGenerator.dominantColor?.color ?? const Color(0xFF1D244D);
-        _endColor = paletteGenerator.darkMutedColor?.color ?? paletteGenerator.darkVibrantColor?.color ?? Colors.black;
-      });
-    }
+  // Função para mudar a tela para o Player. Será passada para o Mini-Player
+  void _goToPlayerScreen() {
+    // Isso forçará o StreamBuilder a reconstruir com o PlayerScreen
+    setState(() {
+      // Usaremos uma variável de estado para controlar se a tela cheia está ativa
+      // Se não for o MainScreen, ele sempre volta para a tela de grade.
+      // Vamos simplificar e usar o Navigator para a tela cheia.
+    });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Minha Rádio',
       theme: ThemeData.dark(),
-      home: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: StreamBuilder<MediaItem?>(
-          stream: widget.audioHandler.mediaItem,
-          builder: (context, snapshot) {
-            final mediaItem = snapshot.data;
-            final artUri = mediaItem?.artUri;
-            
-            // Lógica de mudança de cor mantida aqui (pois afeta o container global do app)
-            if (artUri != null && artUri != _lastArtUri) {
-              _lastArtUri = artUri;
-              _updateBackgroundColors(artUri);
-            }
-            
-            final startColor = mediaItem != null ? _startColor : const Color(0xFF1D244D);
-            final endColor = mediaItem != null ? _endColor : const Color(0xFF000000);
-            
-            // O MyApp agora só cuida do tema e do fundo, e passa o controle para o MainScreen.
-            return AnimatedContainer(
-              duration: const Duration(seconds: 1),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [startColor, endColor]
-                )
-              ),
-              child: SafeArea(
+      home: StreamBuilder<MediaItem?>(
+        stream: widget.audioHandler.mediaItem,
+        builder: (context, snapshot) {
+          final mediaItem = snapshot.data;
+          
+          if (mediaItem != null && mediaItem.artUri != _lastArtUri) {
+            _lastArtUri = mediaItem.artUri;
+            _updateBackgroundColors(mediaItem.artUri!);
+          }
+          
+          final startColor = mediaItem != null ? _startColor : const Color(0xFF1D244D);
+          final endColor = mediaItem != null ? _endColor : const Color(0xFF000000);
+          
+          RadioStation? playingStation;
+          if (mediaItem != null) {
+            playingStation = radioStations.firstWhere(
+              (station) => station.streamUrl == mediaItem.id,
+              orElse: () => radioStations.first
+            );
+          }
+          
+          // O Scaffold principal agora fica aqui para podermos usar o bottomNavigationBar
+          return AnimatedContainer(
+            duration: const Duration(seconds: 1),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [startColor, endColor]
+              )
+            ),
+            child: Scaffold(
+              backgroundColor: Colors.transparent, // Permite que o gradiente do AnimatedContainer apareça
+              body: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: SizedBox.expand(
-                    // NOVO: Chama o MainScreen para gerenciar a navegação entre telas
-                    child: MainScreen(audioHandler: widget.audioHandler), 
-                  ),
+                  child: MainScreen(audioHandler: widget.audioHandler),
                 ),
               ),
-            );
-          },
-        ),
+              
+              // NOVIDADE: O Mini-Player
+              bottomNavigationBar: mediaItem != null && playingStation != null 
+                  ? MiniPlayer(
+                      audioHandler: widget.audioHandler,
+                      mediaItem: mediaItem,
+                      station: playingStation,
+                      onTap: () {
+                        // Navega para a tela cheia do player
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (ctx) => PlayerScreen(
+                              audioHandler: widget.audioHandler,
+                              mediaItem: mediaItem,
+                              station: playingStation!,
+                              // Precisamos de uma função 'onClose' para fechar a tela
+                              onClose: () => Navigator.of(ctx).pop(), 
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : null, // Não mostra o mini-player se não houver rádio tocando
+            ),
+          );
+        },
       ),
     );
   }
