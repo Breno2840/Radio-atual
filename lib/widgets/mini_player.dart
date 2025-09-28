@@ -9,7 +9,7 @@ class MiniPlayer extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
   final MediaItem mediaItem;
   final RadioStation station;
-  final VoidCallback onTap; // Função para ir para o PlayerScreen (tela cheia)
+  final VoidCallback onTap; 
 
   const MiniPlayer({
     super.key,
@@ -29,12 +29,12 @@ class MiniPlayer extends StatelessWidget {
     final artUri = mediaItem.artUri;
 
     return GestureDetector(
-      onTap: onTap, // Leva para a tela cheia ao clicar na barra
+      onTap: onTap, 
       child: Container(
-        height: 70, // Altura padrão do mini-player
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 70 + MediaQuery.of(context).padding.bottom, // Altura + padding inferior do sistema
+        padding: EdgeInsets.fromLTRB(10, 10, 10, MediaQuery.of(context).padding.bottom),
         decoration: BoxDecoration(
-          color: Colors.deepPurple.shade900.withOpacity(0.9), // Cor de fundo semelhante à imagem
+          color: Colors.deepPurple.shade900.withOpacity(0.9), 
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 1)
           ],
@@ -85,10 +85,13 @@ class MiniPlayer extends StatelessWidget {
                 final processing = snapshot.data?.processingState;
 
                 if (processing == AudioProcessingState.loading || processing == AudioProcessingState.buffering) {
-                  return const SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                  return const Padding(
+                    padding: EdgeInsets.only(right: 8.0),
+                    child: SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    ),
                   );
                 }
                 
