@@ -1,7 +1,6 @@
 // lib/widgets/radio_grid_item.dart
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-// Importa o modelo
 import '../models/radio_station.dart'; 
 
 class RadioGridItem extends StatelessWidget {
