@@ -1,12 +1,9 @@
-// lib/pages/main_screen.dart (SIMPLIFICADO)
+// lib/pages/main_screen.dart
 import 'package:flutter/material.dart';
 import '../widgets/audio_player_handler.dart';
-import 'player_screen.dart'; // Ainda é referenciado para usar a rádio padrão, mas não mais o widget principal.
 import 'station_list_screen.dart';
-import '../models/radio_station.dart';
 
-// O MainScreen agora é um StatelessWidget simples que SEMPRE mostra a lista de estações
-// (a navegação para o Player Cheio é feita pelo MiniPlayer)
+// O MainScreen agora é um StatelessWidget que SEMPRE mostra a lista de estações
 class MainScreen extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
 
@@ -14,11 +11,8 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // O MainScreen agora apenas mostra a lista de estações.
-    // O MiniPlayer cuidará da navegação para a tela cheia do Player.
     return StationListScreen(
       audioHandler: audioHandler,
-      // Não precisamos mais do onShowPlayer, pois a navegação é via Mini-Player
     );
   }
 }
