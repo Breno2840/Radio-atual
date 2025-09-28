@@ -1,0 +1,40 @@
+name: Build Flutter Android
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+        
+      # Este comando ainda compila para ARMv7, mesmo que o nome do arquivo seja genérico
+      - name: Build Debug APK for ARMv7
+        run: flutter build apk --debug --target-platform=android-arm
+        
+      - name: Criar Release e Anexar APK
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build #${{ github.run_number }} (ARMv7)
+          # CORREÇÃO FINAL: Usando o nome de arquivo exato que o log mostrou
+          files: build/app/outputs/flutter-apk/app-debug.apk
