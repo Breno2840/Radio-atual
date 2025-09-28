@@ -9,10 +9,10 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 // Imports dos seus arquivos
 import 'pages/player_screen.dart';
-import 'pages/main_screen.dart'; 
+import 'pages/station_list_screen.dart';
 import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart';
-import 'widgets/mini_player.dart'; // NOVO: MiniPlayer
+// Note: O MiniPlayer não é importado aqui, ele é importado e usado no StationListScreen.
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,15 +51,31 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Color _startColor = const Color(0xFF1D244D);
   Color _endColor = const Color(0xFF000000);
+  final Color _defaultStartColor = const Color(0xFF1D244D); 
+  final Color _defaultEndColor = const Color(0xFF000000);   
   Uri? _lastArtUri;
   
+  // Estado para controlar a tela atual: Player (true) ou Lista (false)
+  bool _showingPlayer = true; 
+  
+  void _toggleScreen(bool showPlayer) {
+    setState(() {
+      _showingPlayer = showPlayer;
+      // Quando alterna para a Lista, força o uso das cores escuras fixas
+      if (!showPlayer) {
+        _startColor = _defaultStartColor;
+        _endColor = _defaultEndColor;
+      }
+    });
+  }
+
   Future<void> _updateBackgroundColors(Uri artUri) async {
     final provider = CachedNetworkImageProvider(artUri.toString());
     final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
     if (mounted) {
       setState(() {
-        _startColor = paletteGenerator.dominantColor?.color ?? const Color(0xFF1D244D);
-        _endColor = paletteGenerator.darkMutedColor?.color ?? paletteGenerator.darkVibrantColor?.color ?? Colors.black;
+        _startColor = paletteGenerator.dominantColor?.color ?? _defaultStartColor;
+        _endColor = paletteGenerator.darkMutedColor?.color ?? paletteGenerator.darkVibrantColor?.color ?? _defaultEndColor;
       });
     }
   }
@@ -75,26 +91,47 @@ class _MyAppState extends State<MyApp> {
         builder: (context, snapshot) {
           final mediaItem = snapshot.data;
           
-          if (mediaItem != null && mediaItem.artUri != _lastArtUri) {
+          // Lógica de Cor Dinâmica: SÓ se estiver no Player e com MediaItem
+          if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
             _lastArtUri = mediaItem.artUri;
-            // Se o artUri não for nulo, chama a atualização de cor
             if (mediaItem.artUri != null) {
                _updateBackgroundColors(mediaItem.artUri!);
             }
           }
           
-          final startColor = mediaItem != null ? _startColor : const Color(0xFF1D244D);
-          final endColor = mediaItem != null ? _endColor : const Color(0xFF000000);
-          
+          // Cores usadas: Dinâmicas se for Player, ou as Cores fixas
+          final startColor = _showingPlayer ? _startColor : _defaultStartColor;
+          final endColor = _showingPlayer ? _endColor : _defaultEndColor;
+
           RadioStation? playingStation;
           if (mediaItem != null) {
             playingStation = radioStations.firstWhere(
               (station) => station.streamUrl == mediaItem.id,
               orElse: () => radioStations.first
             );
+          } else {
+             // Garante que o Player inicie com a primeira rádio como placeholder (para a capa)
+             playingStation = radioStations.first;
           }
           
-          // O Scaffold principal fica aqui para podermos usar o bottomNavigationBar
+          // Define a tela a ser exibida
+          Widget currentPage;
+          if (_showingPlayer || playingStation != null) {
+            // PlayerScreen (Tela Inicial)
+            currentPage = PlayerScreen(
+              audioHandler: widget.audioHandler,
+              mediaItem: mediaItem,
+              station: playingStation!,
+              onShowList: () => _toggleScreen(false), 
+            );
+          } else {
+            // StationListScreen (Acessada pelo ícone)
+            currentPage = StationListScreen(
+              audioHandler: widget.audioHandler,
+              onShowPlayer: () => _toggleScreen(true), 
+            );
+          }
+          
           return AnimatedContainer(
             duration: const Duration(seconds: 1),
             decoration: BoxDecoration(
@@ -105,33 +142,14 @@ class _MyAppState extends State<MyApp> {
               )
             ),
             child: Scaffold(
-              backgroundColor: Colors.transparent, // Permite que o gradiente apareça
+              backgroundColor: Colors.transparent, 
               body: SafeArea(
-                // Removido o Padding. O StationListScreen lida com isso agora.
-                child: MainScreen(audioHandler: widget.audioHandler),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: currentPage,
+                ),
               ),
-              
-              // Mini-Player (bottomNavigationBar)
-              bottomNavigationBar: mediaItem != null && playingStation != null 
-                  ? MiniPlayer(
-                      audioHandler: widget.audioHandler,
-                      mediaItem: mediaItem,
-                      station: playingStation,
-                      onTap: () {
-                        // Navega para a tela cheia do player quando o mini-player é clicado
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (ctx) => PlayerScreen(
-                              audioHandler: widget.audioHandler,
-                              mediaItem: mediaItem,
-                              station: playingStation!,
-                              onClose: () => Navigator.of(ctx).pop(), 
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  : null, // Não mostra o mini-player se não houver rádio tocando
+              bottomNavigationBar: null, 
             ),
           );
         },
