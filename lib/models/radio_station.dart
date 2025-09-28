@@ -15,7 +15,7 @@ class RadioStation {
   });
 }
 
-// A lista de dados também vai para cá, facilitando o acesso.
+// A lista de dados
 final List<RadioStation> radioStations = [
   RadioStation(name: 'Radio Jovem Pan', streamUrl: 'https://stream.zeno.fm/c45wbq2us3buv', artUrl: 'https://425w010y9m.ucarecd.net/9f5576a9-38da-48b4-9fab-67b09984ae0b/-/preview/1000x1000/', frequency: '100.9 FM', location: 'São Paulo, SP'),
   RadioStation(name: 'Rádio Cultura', streamUrl: 'https://stm2.aovivodigital.com.br:10250/stream', artUrl: 'https://425w010y9m.ucarecd.net/677f45db-9ea5-4bf0-b211-698b420e4cb7/-/preview/1000x1000/', frequency: '1460 AM', location: 'Amarante, PI'),
