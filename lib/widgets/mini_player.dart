@@ -1,4 +1,3 @@
-// lib/widgets/mini_player.dart
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,7 +30,7 @@ class MiniPlayer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap, 
       child: Container(
-        height: 70 + MediaQuery.of(context).padding.bottom, // Altura + padding inferior do sistema
+        height: 70 + MediaQuery.of(context).padding.bottom, 
         padding: EdgeInsets.fromLTRB(10, 10, 10, MediaQuery.of(context).padding.bottom),
         decoration: BoxDecoration(
           color: Colors.deepPurple.shade900.withOpacity(0.9), 
