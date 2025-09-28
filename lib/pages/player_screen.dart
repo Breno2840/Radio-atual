@@ -1,4 +1,3 @@
-// lib/pages/player_screen.dart (Tela Cheia)
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,14 +9,14 @@ class PlayerScreen extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
   final MediaItem? mediaItem; 
   final RadioStation station; 
-  final VoidCallback onClose; // Função para fechar a tela
+  final VoidCallback onShowList; 
 
   const PlayerScreen({
     super.key,
     required this.audioHandler,
     required this.mediaItem,
     required this.station, 
-    required this.onClose, 
+    required this.onShowList, 
   });
 
   @override
@@ -31,12 +30,12 @@ class PlayerScreen extends StatelessWidget {
     
     return Column(
       children: [
-        // Botão de Fechar
+        // Botão para ir para a lista (3 tracinhos)
         Align(
           alignment: Alignment.topRight,
           child: IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 30),
-            onPressed: onClose, // Fecha a tela cheia
+            icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+            onPressed: onShowList, 
           ),
         ),
         
@@ -64,15 +63,27 @@ class PlayerScreen extends StatelessWidget {
                 )
               ),
               const SizedBox(height: 40),
+              // CORREÇÃO: Estilo do texto ajustado para evitar sublinhado e garantir o tamanho
               Text(
                 displayTitle,
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
-                textAlign: TextAlign.center
+                style: const TextStyle(
+                  fontSize: 26, 
+                  fontWeight: FontWeight.bold, 
+                  color: Colors.white,
+                  decoration: TextDecoration.none, 
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2, 
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
               Text(
                 displaySubtitle,
-                style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.7))
+                style: TextStyle(
+                  fontSize: 18, 
+                  color: Colors.white.withOpacity(0.7),
+                  decoration: TextDecoration.none,
+                )
               ),
               const SizedBox(height: 40),
               StreamBuilder<PlaybackState>(
