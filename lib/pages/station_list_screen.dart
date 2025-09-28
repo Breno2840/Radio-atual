@@ -1,81 +1,124 @@
-// lib/pages/station_list_screen.dart
 import 'package:flutter/material.dart';
+import 'package:audio_service/audio_service.dart';
 import '../models/radio_station.dart';
 import '../widgets/audio_player_handler.dart';
 import '../widgets/radio_grid_item.dart'; 
+import '../widgets/mini_player.dart'; // NOVO: Import do MiniPlayer
 
 class StationListScreen extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
+  final VoidCallback onShowPlayer; 
 
   const StationListScreen({
     super.key,
     required this.audioHandler,
+    required this.onShowPlayer, 
   });
 
   @override
   Widget build(BuildContext context) {
-    // Cálculo matemático (Ajustado)
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenPadding = MediaQuery.of(context).padding;
-    const miniPlayerHeight = 70.0; // Altura do MiniPlayer
-    const topWidgetHeight = 28 + 20; 
+    return StreamBuilder<MediaItem?>(
+      stream: audioHandler.mediaItem,
+      builder: (context, snapshot) {
+        final mediaItem = snapshot.data;
+        RadioStation? playingStation;
+        bool showMiniPlayer = false;
 
-    // O MiniPlayer só aparece se houver áudio, mas o espaço na tela precisa ser considerado.
-    // Vamos calcular o espaço de forma conservadora.
-    final availableHeight = screenHeight - screenPadding.top - screenPadding.bottom - topWidgetHeight - miniPlayerHeight;
+        if (mediaItem != null) {
+          showMiniPlayer = true;
+          playingStation = radioStations.firstWhere(
+            (station) => station.streamUrl == mediaItem.id,
+            orElse: () => radioStations.first,
+          );
+        }
 
-    const crossAxisCount = 2;
-    const mainAxisSpacing = 16.0;
-    const crossAxisSpacing = 16.0;
-    const numberOfRows = 3;
-
-    final totalSpacing = mainAxisSpacing * (numberOfRows - 1);
-    final desiredCardHeight = (availableHeight - totalSpacing) / numberOfRows;
-    
-    final screenWidth = MediaQuery.of(context).size.width;
-    final totalHorizontalPadding = 16.0 * 2;
-    final cardWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / crossAxisCount;
-
-    final desiredAspectRatio = cardWidth / desiredCardHeight;
-
-    return Column(
-      children: [
-        // Título alinhado à esquerda
-        const Padding(
-          padding: EdgeInsets.only(top: 8.0, left: 0.0, right: 0.0), // Padding do MainScreen já foi aplicado
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Estações de Rádio',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-          ),
-        ),
+        const miniPlayerHeight = 70.0;
         
-        const SizedBox(height: 20),
-        Expanded(
-          child: GridView.builder(
-            physics: const BouncingScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossAxisSpacing,
-              mainAxisSpacing: mainAxisSpacing,
-              childAspectRatio: desiredAspectRatio,
+        // Cálculo do Espaço
+        final screenHeight = MediaQuery.of(context).size.height;
+        final screenPadding = MediaQuery.of(context).padding;
+        const topWidgetHeight = 28 + 20 + 30; // Título + Botão
+        
+        final heightAdjustment = showMiniPlayer ? miniPlayerHeight + 10 : 0.0; // Espaço reservado para o MiniPlayer
+        final availableHeight = screenHeight - screenPadding.top - screenPadding.bottom - topWidgetHeight - heightAdjustment;
+
+        const crossAxisCount = 2;
+        const mainAxisSpacing = 16.0;
+        const crossAxisSpacing = 16.0;
+        const numberOfRows = 3;
+
+        final totalSpacing = mainAxisSpacing * (numberOfRows - 1);
+        final desiredCardHeight = (availableHeight - totalSpacing) / numberOfRows;
+        
+        final screenWidth = MediaQuery.of(context).size.width;
+        final totalHorizontalPadding = 16.0 * 2;
+        final cardWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / crossAxisCount;
+
+        final desiredAspectRatio = cardWidth / desiredCardHeight;
+
+        // Utilizamos Stack para colocar a lista e o Mini-Player um sobre o outro
+        return Stack(
+          children: [
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Estações de Rádio',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    // Botão para voltar ao Player
+                    IconButton(
+                      icon: const Icon(Icons.music_note_rounded, color: Colors.white, size: 30),
+                      onPressed: onShowPlayer, 
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: GridView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    // Padding inferior para o GridView
+                    padding: EdgeInsets.only(bottom: showMiniPlayer ? miniPlayerHeight + 10 : 0), 
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: crossAxisSpacing,
+                      mainAxisSpacing: mainAxisSpacing,
+                      childAspectRatio: desiredAspectRatio,
+                    ),
+                    itemCount: radioStations.length,
+                    itemBuilder: (context, index) {
+                      final station = radioStations[index];
+                      return RadioGridItem(
+                        station: station,
+                        // Ao clicar, apenas toca a rádio, e o Mini-Player aparece
+                        onTap: () => audioHandler.playStation(station),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            itemCount: radioStations.length,
-            itemBuilder: (context, index) {
-              final station = radioStations[index];
-              return RadioGridItem(
-                station: station,
-                // Ao clicar, apenas toca a rádio. A navegação permanece na lista.
-                onTap: () => audioHandler.playStation(station),
-              );
-            },
-          ),
-        ),
-        // Adiciona um espaço no final para que o último item não fique escondido atrás do MiniPlayer
-        const SizedBox(height: 10), 
-      ],
+
+            // O Mini-Player Fixo no Rodapé da Lista
+            if (showMiniPlayer && mediaItem != null && playingStation != null)
+              Positioned(
+                bottom: 0,
+                // Compensação para o Padding horizontal de 16.0 do SafeArea no main.dart
+                left: -16, 
+                right: -16, 
+                child: MiniPlayer(
+                  audioHandler: audioHandler,
+                  mediaItem: mediaItem,
+                  station: playingStation,
+                  // O onTap do Mini-Player leva para a tela cheia do Player
+                  onTap: onShowPlayer, 
+                ),
+              ),
+          ],
+        );
+      }
     );
   }
 }
