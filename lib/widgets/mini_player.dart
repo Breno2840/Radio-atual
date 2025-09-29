@@ -40,10 +40,7 @@ class MiniPlayer extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: const Color(0xFF2C2C2E).withOpacity(0.95),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(borderRadiusValue),
-            topRight: Radius.circular(borderRadiusValue),
-          ),
+          borderRadius: BorderRadius.circular(borderRadiusValue), // 🔄 todos os cantos arredondados
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.5),
@@ -55,11 +52,12 @@ class MiniPlayer extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Capa estilo Spotify (quadrada, centralizada)
+            // 📀 Capa estilo Spotify
             ClipRRect(
               borderRadius: BorderRadius.circular(6.0),
-              child: AspectRatio(
-                aspectRatio: 1, // força quadrado
+              child: SizedBox(
+                width: 50,
+                height: 50,
                 child: artUri != null
                     ? CachedNetworkImage(
                         imageUrl: artUri.toString(),
@@ -71,7 +69,7 @@ class MiniPlayer extends StatelessWidget {
             ),
             const SizedBox(width: 10),
 
-            // Títulos
+            // 📋 Títulos
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +98,7 @@ class MiniPlayer extends StatelessWidget {
               ),
             ),
 
-            // Botão Play/Pause (mantido como você queria)
+            // ▶️ Botão Play/Pause (mantido como você queria)
             StreamBuilder<PlaybackState>(
               stream: audioHandler.playbackState,
               builder: (context, snapshot) {
