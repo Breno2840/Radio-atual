@@ -28,34 +28,32 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
-      # --- INÍCIO DA CONFIGURAÇÃO DE SEGURANÇA DA CHAVE KEYSTORE ---
+      # --- CONFIGURAÇÃO DE SEGURANÇA DA CHAVE KEYSTORE ---
       
       # 1. Decodificar a chave secreta Base64 e criar o arquivo JKS
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
-          # O arquivo 'upload-keystore.jks' será criado em 'android/app/'
+          # Cria o arquivo que o Gradle vai procurar
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
-      # 2. Configurar as senhas como variáveis de ambiente para o build
+      # 2. Configurar as senhas como variáveis de ambiente
       - name: Configurar Variáveis de Senha
         run: |
-          # O build.gradle usará System.getenv() para buscar essas credenciais e assinar o build
-          echo "KEY_PASS=${{ secrets.KEY_PASS }}" >> $GITHUB_ENV
+          # Mapeando seus Secrets para as variáveis que o build.gradle.kts espera:
+          echo "KEY_PASS=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "STORE_PASS=${{ secrets.STORE_PASS }}" >> $GITHUB_ENV
+          echo "STORE_PASS=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV # Mapeia KEYSTORE_PASSWORD para STORE_PASS
           
       # --- FIM DA CONFIGURAÇÃO DE SEGURANÇA ---
 
 
       # Comando de Build de Release
       - name: Build Android APK - Release
-        # Comando para gerar APK assinado, ideal para testes de instalação
         run: flutter build apk --release
         
       - name: Criar Release e Anexar APK
         uses: softprops/action-gh-release@v1
         with:
           tag_name: release-v1.0.${{ github.run_number }}
-          name: Versão de Produção v1.0 #${{ github.run_number }} (APK)
-          # O arquivo gerado é o app-release.apk na pasta flutter-apk
+          name: Versão de Produção v1.0 (APK) #${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
