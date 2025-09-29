@@ -58,17 +58,20 @@ class _MyAppState extends State<MyApp> {
   bool _showingPlayer = true; 
   
   void _toggleScreen(bool showPlayer) {
-    setState(() {
-      _showingPlayer = showPlayer;
-      // Quando alterna para a Lista, força o uso das cores escuras fixas
-      if (!showPlayer) {
-        _startColor = _defaultStartColor;
-        _endColor = _defaultEndColor;
-      }
-    });
+    // CORREÇÃO: Força a atualização do estado da tela
+    if (_showingPlayer != showPlayer) {
+      setState(() {
+        _showingPlayer = showPlayer;
+        // Quando alterna para a Lista, força o uso das cores escuras fixas
+        if (!showPlayer) {
+          _startColor = _defaultStartColor;
+          _endColor = _defaultEndColor;
+        }
+      });
+    }
   }
 
-  // CORREÇÃO: Função de atualização do fundo dinâmico com verificação de URL
+  // Correção: Função de atualização do fundo dinâmico com verificação de URL
   Future<void> _updateBackgroundColors(Uri artUri) async {
     final provider = CachedNetworkImageProvider(artUri.toString());
     final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
@@ -89,6 +92,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Minha Rádio',
       theme: ThemeData.dark(),
       home: StreamBuilder<MediaItem?>(
+        // O StreamBuilder DEVE permanecer aqui, pois ele é a fonte de verdade para MediaItem
         stream: widget.audioHandler.mediaItem,
         builder: (context, snapshot) {
           final mediaItem = snapshot.data;
@@ -118,19 +122,20 @@ class _MyAppState extends State<MyApp> {
           
           // Define a tela a ser exibida
           Widget currentPage;
-          if (_showingPlayer || playingStation != null) {
-            // PlayerScreen (Tela Inicial)
+          
+          // Se estamos no modo Player OU se algo está tocando, mostramos o PlayerScreen
+          if (_showingPlayer) { 
             currentPage = PlayerScreen(
               audioHandler: widget.audioHandler,
               mediaItem: mediaItem,
               station: playingStation!,
-              onShowList: () => _toggleScreen(false), // Função de navegação corrigida
+              onShowList: () => _toggleScreen(false), // O botão no Player define _showingPlayer para false
             );
           } else {
-            // StationListScreen (Acessada pelo ícone)
+            // Caso contrário, mostramos a Lista de Rádios
             currentPage = StationListScreen(
               audioHandler: widget.audioHandler,
-              onShowPlayer: () => _toggleScreen(true), 
+              onShowPlayer: () => _toggleScreen(true), // O botão no MiniPlayer/Lista define _showingPlayer para true
             );
           }
           
@@ -148,7 +153,7 @@ class _MyAppState extends State<MyApp> {
               body: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: currentPage,
+                  child: currentPage, // A tela que está sendo exibida.
                 ),
               ),
               bottomNavigationBar: null, 
