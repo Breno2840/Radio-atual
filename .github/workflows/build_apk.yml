@@ -1,4 +1,4 @@
-name: Build Flutter Android Release
+Name: Build Flutter Android Release
 
 on:
   # Permite que você inicie o workflow manualmente na aba Actions do GitHub
@@ -37,16 +37,19 @@ jobs:
       # 5️⃣ Decodificar a chave secreta Base64 e criar o arquivo JKS
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
-          # Cria o arquivo que o Gradle vai procurar
+          # O arquivo .jks é salvo dentro da pasta Android/app, onde o build.gradle vai procurá-lo.
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
-      # 6️⃣ Configurar as senhas como variáveis de ambiente
-      - name: Configurar Variáveis de Senha
+      # 6️⃣ Criar o arquivo key.properties com os valores REAIS dos segredos
+      - name: Criar Arquivo key.properties com Segredos
+        shell: bash
         run: |
-          # Mapeando seus Secrets para as variáveis que o build.gradle espera:
-          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
-          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          # Este arquivo key.properties é criado com os VALORES dos seus segredos.
+          # Ele será lido pelo build.gradle.kts para realizar a assinatura.
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
           
       # --- FIM DA CONFIGURAÇÃO DE SEGURANÇA ---
 
