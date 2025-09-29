@@ -31,9 +31,16 @@ class MiniPlayer extends StatelessWidget {
       onTap: onTap, 
       child: Container(
         height: 70 + MediaQuery.of(context).padding.bottom, 
-        padding: EdgeInsets.fromLTRB(10, 10, 10, MediaQuery.of(context).padding.bottom),
+        // Aplicando padding horizontal consistente de 16.0
+        padding: EdgeInsets.fromLTRB(
+          16.0, 
+          10.0, 
+          16.0, 
+          MediaQuery.of(context).padding.bottom
+        ),
         decoration: BoxDecoration(
-          color: Colors.deepPurple.shade900.withOpacity(0.9), 
+          // CORREÇÃO: Nova cor Cinza Escuro Neutro
+          color: const Color(0xFF2C2C2E).withOpacity(0.95), 
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 1)
           ],
