@@ -20,41 +20,7 @@ class RadioStation {
 
 // Lista completa e atualizada de estações de rádio
 const List<RadioStation> radioStations = [
-  // NOVAS RÁDIOS ADICIONADAS
-  RadioStation(
-    name: 'Rádio Jaraguá',
-    frequency: '101.3',
-    band: 'FM',
-    location: 'Jaraguá do Sul, SC',
-    streamUrl: 'https://wz7.servidoresbrasil.com:8066/stream',
-    artUrl: 'https://425w010y9m.ucarecd.net/75a6dedd-0db9-423f-aa2f-511ab921f9e0/-/preview/1000x1000/',
-  ),
-  RadioStation(
-    name: 'Rádio Cidade Verde',
-    frequency: '93.5',
-    band: 'FM',
-    location: 'Teresina, PI',
-    streamUrl: 'https://ssl1.transmissaodigital.com:20010/stream', // O ponto e vírgula foi removido no final
-    artUrl: 'https://425w010y9m.ucarecd.net/c80b1460-27e9-433d-8c34-7a5922646a9f/-/preview/1000x1000/',
-  ),
-  RadioStation(
-    name: 'Rádio Capital',
-    frequency: '101.9',
-    band: 'FM',
-    location: 'Cuiabá, MT',
-    streamUrl: 'https://radio.saopaulo01.com.br/8214/stream',
-    artUrl: 'https://425w010y9m.ucarecd.net/04d5ede0-c6b7-4adb-95fc-27c001cd9d25/-/preview/1000x1000/',
-  ),
-  RadioStation(
-    name: 'Rádio Cultura',
-    frequency: '90.7',
-    band: 'FM',
-    location: 'Cuiabá, MT',
-    streamUrl: 'http://sc4.dnip.com.br:11260/stream', // O ponto e vírgula foi removido no final
-    artUrl: 'https://425w010y9m.ucarecd.net/f2a605e7-811a-4205-950d-dfe7de14a1c3/-/preview/1000x1000/',
-  ),
-  
-  // RÁDIOS ANTERIORES
+  // RÁDIOS EXISTENTES (Mantidas no Topo da Lista)
   RadioStation(
     name: 'Rádio Jovem Pan',
     frequency: '100.9',
@@ -150,5 +116,39 @@ const List<RadioStation> radioStations = [
     location: 'Fortaleza, CE',
     streamUrl: 'https://fmfortaleza.jmvstream.com/FMFortaleza_live',
     artUrl: 'https://425w010y9m.ucarecd.net/06018b3e-22be-45e6-b305-97e12f104b9d/-/preview/1000x1000/',
+  ),
+  
+  // NOVAS RÁDIOS (Movidas para o final da Lista)
+  RadioStation(
+    name: 'Rádio Jaraguá',
+    frequency: '101.3',
+    band: 'FM',
+    location: 'Jaraguá do Sul, SC',
+    streamUrl: 'https://wz7.servidoresbrasil.com:8066/stream',
+    artUrl: 'https://425w010y9m.ucarecd.net/75a6dedd-0db9-423f-aa2f-511ab921f9e0/-/preview/1000x1000/',
+  ),
+  RadioStation(
+    name: 'Rádio Cidade Verde',
+    frequency: '93.5',
+    band: 'FM',
+    location: 'Teresina, PI',
+    streamUrl: 'https://ssl1.transmissaodigital.com:20010/stream',
+    artUrl: 'https://425w010y9m.ucarecd.net/c80b1460-27e9-433d-8c34-7a5922646a9f/-/preview/1000x1000/',
+  ),
+  RadioStation(
+    name: 'Rádio Capital',
+    frequency: '101.9',
+    band: 'FM',
+    location: 'Cuiabá, MT',
+    streamUrl: 'https://radio.saopaulo01.com.br/8214/stream',
+    artUrl: 'https://425w010y9m.ucarecd.net/04d5ede0-c6b7-4adb-95fc-27c001cd9d25/-/preview/1000x1000/',
+  ),
+  RadioStation(
+    name: 'Rádio Cultura',
+    frequency: '90.7',
+    band: 'FM',
+    location: 'Cuiabá, MT',
+    streamUrl: 'http://sc4.dnip.com.br:11260/stream',
+    artUrl: 'https://425w010y9m.ucarecd.net/f2a605e7-811a-4205-950d-dfe7de14a1c3/-/preview/1000x1000/',
   ),
 ];
