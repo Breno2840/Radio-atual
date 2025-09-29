@@ -17,7 +17,7 @@ val flutterVersionCode = localProperties.getProperty("flutter.versionCode", "1")
 val flutterVersionName = localProperties.getProperty("flutter.versionName", "1.0")!!
 
 android {
-    namespace = "com.calculadora.my"
+    namespace = "com.breno.radioapp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -33,7 +33,7 @@ android {
     sourceSets["main"].java.srcDirs("src/main/kotlin")
 
     defaultConfig {
-        applicationId = "com.calculadora.my"
+        applicationId = "com.breno.radioapp"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInt()
