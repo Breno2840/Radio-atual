@@ -1,3 +1,5 @@
+// android/app/build.gradle.kts (Kotlin DSL)
+
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -15,6 +17,13 @@ if (localPropertiesFile.exists()) {
 
 val flutterVersionCode = localProperties.getProperty("flutter.versionCode", "1")!!
 val flutterVersionName = localProperties.getProperty("flutter.versionName", "1.0")!!
+
+// INÍCIO DA CONFIGURAÇÃO DE ASSINATURA:
+val signingProperties = Properties()
+val signingPropertiesFile = rootProject.file("key.properties")
+if (signingPropertiesFile.exists()) {
+    signingProperties.load(FileInputStream(signingPropertiesFile))
+}
 
 android {
     namespace = "com.breno.radioapp"
@@ -40,6 +49,19 @@ android {
         versionName = flutterVersionName
     }
 
+    // CRUCIAL: Configuração da Assinatura (Signing Config)
+    signingConfigs {
+        create("release") {
+            // Se key.properties existir, usa ele. Caso contrário (CI/CD), assume o nome do arquivo injetado.
+            storeFile = file(signingProperties.getProperty("storeFile") ?: "upload-keystore.jks")
+            
+            // Tenta obter a propriedade do key.properties (placeholder). SE NÃO EXISTIR, usa a variável de ambiente (do GitHub Actions)
+            keyAlias = signingProperties.getProperty("keyAlias") ?: System.getenv("KEY_ALIAS")
+            storePassword = signingProperties.getProperty("storePassword") ?: System.getenv("STORE_PASS")
+            keyPassword = signingProperties.getProperty("keyPassword") ?: System.getenv("KEY_PASS")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -47,7 +69,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            // CORREÇÃO: Usando a nova configuração de assinatura de Release
+            signingConfig = signingConfigs.getByName("release") 
         }
     }
 }
@@ -57,10 +80,7 @@ flutter {
 }
 
 dependencies {
-    // Usando a versão do Kotlin diretamente
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
-    
-    // DEPENDÊNCIAS NATIVAS QUE ESTAVAM FALTANDO
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
 }
