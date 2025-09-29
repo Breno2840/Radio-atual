@@ -3,7 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import '../models/radio_station.dart';
 import '../widgets/audio_player_handler.dart';
 import '../widgets/radio_grid_item.dart'; 
-import '../widgets/mini_player.dart'; // NOVO: Import do MiniPlayer
+import '../widgets/mini_player.dart'; 
 
 class StationListScreen extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
@@ -39,7 +39,7 @@ class StationListScreen extends StatelessWidget {
         final screenPadding = MediaQuery.of(context).padding;
         const topWidgetHeight = 28 + 20 + 30; // Título + Botão
         
-        final heightAdjustment = showMiniPlayer ? miniPlayerHeight + 10 : 0.0; // Espaço reservado para o MiniPlayer
+        final heightAdjustment = showMiniPlayer ? miniPlayerHeight + 10 : 0.0; 
         final availableHeight = screenHeight - screenPadding.top - screenPadding.bottom - topWidgetHeight - heightAdjustment;
 
         const crossAxisCount = 2;
@@ -92,7 +92,6 @@ class StationListScreen extends StatelessWidget {
                       final station = radioStations[index];
                       return RadioGridItem(
                         station: station,
-                        // Ao clicar, apenas toca a rádio, e o Mini-Player aparece
                         onTap: () => audioHandler.playStation(station),
                       );
                     },
@@ -105,15 +104,13 @@ class StationListScreen extends StatelessWidget {
             if (showMiniPlayer && mediaItem != null && playingStation != null)
               Positioned(
                 bottom: 0,
-                // Compensação para o Padding horizontal de 16.0 do SafeArea no main.dart
                 left: -16, 
                 right: -16, 
                 child: MiniPlayer(
                   audioHandler: audioHandler,
                   mediaItem: mediaItem,
                   station: playingStation,
-                  // O onTap do Mini-Player leva para a tela cheia do Player
-                  onTap: onShowPlayer, 
+                  onTap: onShowPlayer, // Clicar leva para a tela cheia
                 ),
               ),
           ],
