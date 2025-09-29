@@ -12,45 +12,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # --- 1️⃣ Checar o código ---
       - uses: actions/checkout@v3
 
+      # --- 2️⃣ Configurar Java ---
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: "17"
 
+      # --- 3️⃣ Configurar Flutter ---
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           
+      # --- 4️⃣ Instalar dependências ---
       - name: Install dependencies
         run: flutter pub get
         
       # --- CONFIGURAÇÃO DE SEGURANÇA DA CHAVE KEYSTORE ---
       
-      # 1. Decodificar a chave secreta Base64 e criar o arquivo JKS
+      # 5️⃣ Decodificar a chave secreta Base64 e criar o arquivo JKS
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
           # Cria o arquivo que o Gradle vai procurar
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
-      # 2. Configurar as senhas como variáveis de ambiente
+      # 6️⃣ Configurar as senhas como variáveis de ambiente
       - name: Configurar Variáveis de Senha
         run: |
-          # Mapeando seus Secrets para as variáveis que o build.gradle.kts espera:
-          echo "KEY_PASS=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          # Mapeando seus Secrets para as variáveis que o build.gradle espera:
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "STORE_PASS=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV # Mapeia KEYSTORE_PASSWORD para STORE_PASS
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
           
       # --- FIM DA CONFIGURAÇÃO DE SEGURANÇA ---
 
 
-      # Comando de Build de Release
+      # --- 7️⃣ Comando de Build de Release ---
       - name: Build Android APK - Release
         run: flutter build apk --release
         
+      # --- 8️⃣ Criar Release e Anexar APK ---
       - name: Criar Release e Anexar APK
         uses: softprops/action-gh-release@v1
         with:
