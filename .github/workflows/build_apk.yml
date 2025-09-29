@@ -1,6 +1,7 @@
-name: Build Flutter Android
+name: Build Flutter Android Release
 
 on:
+  # Permite que você inicie o workflow manualmente na aba Actions do GitHub
   workflow_dispatch:
 
 jobs:
@@ -27,14 +28,38 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
-      # Este comando ainda compila para ARMv7, mesmo que o nome do arquivo seja genérico
-      - name: Build Debug APK for ARMv7
-        run: flutter build apk --debug --target-platform=android-arm
+      # --- INÍCIO DA CONFIGURAÇÃO DE SEGURANÇA DA CHAVE KEYSTORE ---
+      
+      # 1. Decodificar a chave secreta Base64 e criar o arquivo JKS
+      - name: Decodificar Keystore e Salvar Arquivo
+        run: |
+          # O arquivo 'upload-keystore.jks' será criado em 'android/app/' para o Gradle encontrá-lo
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          
+      # 2. Configurar as senhas como variáveis de ambiente para o build
+      - name: Configurar Variáveis de Senha
+        run: |
+          # O build.gradle usará essas variáveis (System.getenv) para assinar o release
+          echo "KEY_PASS=${{ secrets.KEY_PASS }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "STORE_PASS=${{ secrets.STORE_PASS }}" >> $GITHUB_ENV
+          
+      # --- FIM DA CONFIGURAÇÃO DE SEGURANÇA ---
+
+
+      # Comando de Build de Release
+      # Compilamos o App Bundle (AAB) que é o formato padrão do Google Play
+      - name: Build Android App Bundle (AAB) - Release
+        run: flutter build appbundle --release
         
-      - name: Criar Release e Anexar APK
+      # Se você precisar de um APK de Release, use:
+      # - name: Build Android APK - Release
+      #   run: flutter build apk --release
+
+      - name: Criar Release e Anexar AAB
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: build-${{ github.run_number }}
-          name: Build #${{ github.run_number }} (ARMv7)
-          # CORREÇÃO FINAL: Usando o nome de arquivo exato que o log mostrou
-          files: build/app/outputs/flutter-apk/app-debug.apk
+          tag_name: release-v1.0.${{ github.run_number }} # Nome de tag mais profissional
+          name: Versão de Produção v1.0 #${{ github.run_number }} (AAB)
+          # O arquivo gerado é o app-release.aab na pasta outputs/bundle
+          files: build/app/outputs/bundle/release/app-release.aab
