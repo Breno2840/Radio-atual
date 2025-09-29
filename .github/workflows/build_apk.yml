@@ -1,7 +1,7 @@
-Name: Build Flutter Android Release
+name: Build Flutter Android Release
 
 on:
-  # Permite que você inicie o workflow manualmente na aba Actions do GitHub
+  # Permite iniciar o workflow manualmente
   workflow_dispatch:
 
 jobs:
@@ -37,15 +37,12 @@ jobs:
       # 5️⃣ Decodificar a chave secreta Base64 e criar o arquivo JKS
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
-          # O arquivo .jks é salvo dentro da pasta Android/app, onde o build.gradle vai procurá-lo.
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
       # 6️⃣ Criar o arquivo key.properties com os valores REAIS dos segredos
       - name: Criar Arquivo key.properties com Segredos
         shell: bash
         run: |
-          # Este arquivo key.properties é criado com os VALORES dos seus segredos.
-          # Ele será lido pelo build.gradle.kts para realizar a assinatura.
           echo "storeFile=upload-keystore.jks" > android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
