@@ -30,15 +30,15 @@ class MiniPlayer extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      // CORREÇÃO CRUCIAL: Envolvemos o Container com ClipRRect
+      // CRUCIAL: O ClipRRect força o corte visual nas bordas
       child: ClipRRect( 
-        // Aplicamos o mesmo Border Radius que está no Container
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(borderRadiusValue),
           topRight: Radius.circular(borderRadiusValue),
         ),
         child: Container(
           height: 70 + MediaQuery.of(context).padding.bottom,
+          // Padding interno para respirar as bordas
           padding: EdgeInsets.fromLTRB(
             16.0,
             10.0,
@@ -47,7 +47,7 @@ class MiniPlayer extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: const Color(0xFF2C2C2E).withOpacity(0.95),
-            // Mudei para only, mas se quiser todos, use circular(borderRadiusValue)
+            // O BoxDecoration deve ter o Border Radius para o ClipRRect saber onde cortar.
             borderRadius: const BorderRadius.only( 
               topLeft: Radius.circular(borderRadiusValue),
               topRight: Radius.circular(borderRadiusValue),
@@ -65,7 +65,7 @@ class MiniPlayer extends StatelessWidget {
             children: [
               // 📀 Capa
               ClipRRect(
-                borderRadius: BorderRadius.circular(6.0),
+                borderRadius: BorderRadius.circular(4.0), // Borda da capa interna
                 child: SizedBox(
                   width: 50,
                   height: 50,
