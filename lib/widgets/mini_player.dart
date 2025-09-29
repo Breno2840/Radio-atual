@@ -30,22 +30,25 @@ class MiniPlayer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap, 
       child: Container(
+        // Altura total do Mini-Player, incluindo a área de segurança inferior
         height: 70 + MediaQuery.of(context).padding.bottom, 
-        // Aplicando padding horizontal consistente de 16.0
+        
+        // CORREÇÃO DE LAYOUT: Padding horizontal de 16.0 e vertical de 10.0
         padding: EdgeInsets.fromLTRB(
           16.0, 
-          10.0, 
+          10.0, // Top padding
           16.0, 
-          MediaQuery.of(context).padding.bottom
+          MediaQuery.of(context).padding.bottom // Bottom padding de segurança
         ),
         decoration: BoxDecoration(
-          // CORREÇÃO: Nova cor Cinza Escuro Neutro
           color: const Color(0xFF2C2C2E).withOpacity(0.95), 
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 1)
           ],
         ),
         child: Row(
+          // CORREÇÃO CRUCIAL: Centraliza todos os elementos na linha (capa, texto, botão) verticalmente
+          crossAxisAlignment: CrossAxisAlignment.center, 
           children: [
             // Capa da Rádio
             ClipRRect(
@@ -63,6 +66,7 @@ class MiniPlayer extends StatelessWidget {
             // Títulos
             Expanded(
               child: Column(
+                // O Column é centralizado dentro do Expanded
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
