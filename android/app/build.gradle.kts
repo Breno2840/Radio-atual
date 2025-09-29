@@ -52,10 +52,10 @@ android {
     // CRUCIAL: Configuração da Assinatura (Signing Config)
     signingConfigs {
         create("release") {
-            // Se key.properties existir, usa ele. Caso contrário (CI/CD), assume o nome do arquivo injetado.
+            // O nome do arquivo Keystore que o GitHub Actions cria
             storeFile = file(signingProperties.getProperty("storeFile") ?: "upload-keystore.jks")
             
-            // Tenta obter a propriedade do key.properties (placeholder). SE NÃO EXISTIR, usa a variável de ambiente (do GitHub Actions)
+            // Tenta obter a propriedade do key.properties. SE NÃO EXISTIR (CI/CD), usa a variável de ambiente
             keyAlias = signingProperties.getProperty("keyAlias") ?: System.getenv("KEY_ALIAS")
             storePassword = signingProperties.getProperty("storePassword") ?: System.getenv("STORE_PASS")
             keyPassword = signingProperties.getProperty("keyPassword") ?: System.getenv("KEY_PASS")
@@ -69,7 +69,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // CORREÇÃO: Usando a nova configuração de assinatura de Release
+            // CORREÇÃO: Aponta para a configuração de assinatura de Release
             signingConfig = signingConfigs.getByName("release") 
         }
     }
