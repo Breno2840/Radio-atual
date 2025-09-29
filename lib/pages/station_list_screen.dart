@@ -34,10 +34,9 @@ class StationListScreen extends StatelessWidget {
 
         const miniPlayerHeight = 70.0;
         
-        // Cálculo do Espaço
         final screenHeight = MediaQuery.of(context).size.height;
         final screenPadding = MediaQuery.of(context).padding;
-        const topWidgetHeight = 28 + 20 + 30; // Título + Botão
+        const topWidgetHeight = 28 + 20 + 30; 
         
         final heightAdjustment = showMiniPlayer ? miniPlayerHeight + 10 : 0.0; 
         final availableHeight = screenHeight - screenPadding.top - screenPadding.bottom - topWidgetHeight - heightAdjustment;
@@ -56,7 +55,6 @@ class StationListScreen extends StatelessWidget {
 
         final desiredAspectRatio = cardWidth / desiredCardHeight;
 
-        // Utilizamos Stack para colocar a lista e o Mini-Player um sobre o outro
         return Stack(
           children: [
             Column(
@@ -68,7 +66,6 @@ class StationListScreen extends StatelessWidget {
                       'Estações de Rádio',
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                    // Botão para voltar ao Player
                     IconButton(
                       icon: const Icon(Icons.music_note_rounded, color: Colors.white, size: 30),
                       onPressed: onShowPlayer, 
@@ -104,13 +101,14 @@ class StationListScreen extends StatelessWidget {
             if (showMiniPlayer && mediaItem != null && playingStation != null)
               Positioned(
                 bottom: 0,
-                left: -16, 
-                right: -16, 
+                // CORREÇÃO AQUI: Deixamos o MiniPlayer respeitar o padding do SafeArea
+                left: 0, 
+                right: 0, 
                 child: MiniPlayer(
                   audioHandler: audioHandler,
                   mediaItem: mediaItem,
                   station: playingStation,
-                  onTap: onShowPlayer, // Clicar leva para a tela cheia
+                  onTap: onShowPlayer, 
                 ),
               ),
           ],
