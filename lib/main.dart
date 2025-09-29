@@ -7,12 +7,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
-// Imports dos seus arquivos
+// Imports dos seus arquivos de código
 import 'pages/player_screen.dart';
 import 'pages/station_list_screen.dart';
 import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart';
-// Note: O MiniPlayer não é importado aqui, ele é importado e usado no StationListScreen.
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,10 +68,13 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // CORREÇÃO: Função de atualização do fundo dinâmico com verificação de URL
   Future<void> _updateBackgroundColors(Uri artUri) async {
     final provider = CachedNetworkImageProvider(artUri.toString());
     final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
-    if (mounted) {
+    
+    // CRUCIAL: Só atualiza o estado se a arte atual for a mesma da URL que iniciou a função
+    if (mounted && artUri == _lastArtUri) { 
       setState(() {
         _startColor = paletteGenerator.dominantColor?.color ?? _defaultStartColor;
         _endColor = paletteGenerator.darkMutedColor?.color ?? paletteGenerator.darkVibrantColor?.color ?? _defaultEndColor;
@@ -91,7 +93,7 @@ class _MyAppState extends State<MyApp> {
         builder: (context, snapshot) {
           final mediaItem = snapshot.data;
           
-          // Lógica de Cor Dinâmica: SÓ se estiver no Player e com MediaItem
+          // Lógica de Cor Dinâmica:
           if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
             _lastArtUri = mediaItem.artUri;
             if (mediaItem.artUri != null) {
@@ -110,7 +112,7 @@ class _MyAppState extends State<MyApp> {
               orElse: () => radioStations.first
             );
           } else {
-             // Garante que o Player inicie com a primeira rádio como placeholder (para a capa)
+             // Garante que o Player inicie com a primeira rádio como placeholder
              playingStation = radioStations.first;
           }
           
@@ -122,7 +124,7 @@ class _MyAppState extends State<MyApp> {
               audioHandler: widget.audioHandler,
               mediaItem: mediaItem,
               station: playingStation!,
-              onShowList: () => _toggleScreen(false), 
+              onShowList: () => _toggleScreen(false), // Função de navegação corrigida
             );
           } else {
             // StationListScreen (Acessada pelo ícone)
