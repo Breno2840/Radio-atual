@@ -33,12 +33,12 @@ class MiniPlayer extends StatelessWidget {
         // Altura total do Mini-Player, incluindo a área de segurança inferior
         height: 70 + MediaQuery.of(context).padding.bottom, 
         
-        // CORREÇÃO DE LAYOUT: Padding horizontal de 16.0 e vertical de 10.0
+        // Ajuste de Padding: Usamos 16.0 nas laterais, garantindo que o conteúdo interno comece alinhado
         padding: EdgeInsets.fromLTRB(
           16.0, 
-          10.0, // Top padding
+          10.0, // Padding Top
           16.0, 
-          MediaQuery.of(context).padding.bottom // Bottom padding de segurança
+          MediaQuery.of(context).padding.bottom // Padding Bottom (Zona segura)
         ),
         decoration: BoxDecoration(
           color: const Color(0xFF2C2C2E).withOpacity(0.95), 
@@ -47,7 +47,7 @@ class MiniPlayer extends StatelessWidget {
           ],
         ),
         child: Row(
-          // CORREÇÃO CRUCIAL: Centraliza todos os elementos na linha (capa, texto, botão) verticalmente
+          // Garante que o conteúdo esteja centralizado verticalmente
           crossAxisAlignment: CrossAxisAlignment.center, 
           children: [
             // Capa da Rádio
@@ -56,6 +56,7 @@ class MiniPlayer extends StatelessWidget {
               child: SizedBox(
                 width: 50,
                 height: 50,
+                // A imagem está perfeitamente centralizada e tem 50x50.
                 child: artUri != null
                     ? CachedNetworkImage(imageUrl: artUri.toString(), fit: BoxFit.cover)
                     : const Icon(Icons.radio, color: Colors.white70),
@@ -66,7 +67,7 @@ class MiniPlayer extends StatelessWidget {
             // Títulos
             Expanded(
               child: Column(
-                // O Column é centralizado dentro do Expanded
+                // O Column é centralizado verticalmente dentro do Expanded
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
