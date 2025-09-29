@@ -1,0 +1,4 @@
+# No seu arquivo .gitignore
+...
+# Secrets de assinatura de apps Android
+/android/key.properties
