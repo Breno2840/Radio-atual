@@ -33,13 +33,13 @@ jobs:
       # 1. Decodificar a chave secreta Base64 e criar o arquivo JKS
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
-          # O arquivo 'upload-keystore.jks' será criado em 'android/app/' para o Gradle encontrá-lo
+          # O arquivo 'upload-keystore.jks' será criado em 'android/app/'
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
       # 2. Configurar as senhas como variáveis de ambiente para o build
       - name: Configurar Variáveis de Senha
         run: |
-          # O build.gradle usará essas variáveis (System.getenv) para assinar o release
+          # O build.gradle usará System.getenv() para buscar essas credenciais e assinar o build
           echo "KEY_PASS=${{ secrets.KEY_PASS }}" >> $GITHUB_ENV
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
           echo "STORE_PASS=${{ secrets.STORE_PASS }}" >> $GITHUB_ENV
@@ -48,18 +48,14 @@ jobs:
 
 
       # Comando de Build de Release
-      # Compilamos o App Bundle (AAB) que é o formato padrão do Google Play
-      - name: Build Android App Bundle (AAB) - Release
-        run: flutter build appbundle --release
+      - name: Build Android APK - Release
+        # Comando para gerar APK assinado, ideal para testes de instalação
+        run: flutter build apk --release
         
-      # Se você precisar de um APK de Release, use:
-      # - name: Build Android APK - Release
-      #   run: flutter build apk --release
-
-      - name: Criar Release e Anexar AAB
+      - name: Criar Release e Anexar APK
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: release-v1.0.${{ github.run_number }} # Nome de tag mais profissional
-          name: Versão de Produção v1.0 #${{ github.run_number }} (AAB)
-          # O arquivo gerado é o app-release.aab na pasta outputs/bundle
-          files: build/app/outputs/bundle/release/app-release.aab
+          tag_name: release-v1.0.${{ github.run_number }}
+          name: Versão de Produção v1.0 #${{ github.run_number }} (APK)
+          # O arquivo gerado é o app-release.apk na pasta flutter-apk
+          files: build/app/outputs/flutter-apk/app-release.apk
