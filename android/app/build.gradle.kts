@@ -12,15 +12,15 @@ plugins {
 // --- FUNÇÃO AUXILIAR PARA LER PROPRIEDADES DE ARQUIVOS ---
 fun getSigningConfigProperties(): Properties {
     val properties = Properties()
-    // Busca o arquivo key.properties que o CI/CD cria na pasta 'android/'
-    val propertiesFile = project.rootProject.file("android/key.properties")
+    // Busca o arquivo key.properties na pasta 'android/' (criado pelo CI/CD)
+    val propertiesFile = rootProject.file("key.properties")
     if (propertiesFile.exists()) {
         propertiesFile.inputStream().use { properties.load(it) }
     }
     return properties
 }
 
-// --- LEITURA DAS PROPRIEDADES LOCAL.PROPERTIES ---
+// --- LEITURA DAS PROPRIEDADES DO local.properties ---
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -56,23 +56,21 @@ android {
 
     // --- CONFIGURAÇÃO DE ASSINATURA (SIGNING CONFIG) ---
     signingConfigs {
-        // Obter as propriedades que foram injetadas no key.properties pelo CI/CD
         val signingProps = getSigningConfigProperties()
 
         create("release") {
-            // Verifica se o arquivo key.properties foi carregado (indicando CI/CD)
             if (signingProps.isNotEmpty()) {
-                // Configuração usada APENAS no CI/CD:
-                // Aponta diretamente para onde o arquivo JKS é decodificado pelo workflow
-                storeFile = file(project.rootProject.file("android/app/upload-keystore.jks"))
+                // Usado no CI/CD (GitHub Actions)
+                storeFile = rootProject.file("app/upload-keystore.jks")
                 keyAlias = signingProps.getProperty("keyAlias")
                 storePassword = signingProps.getProperty("storePassword")
                 keyPassword = signingProps.getProperty("keyPassword")
             } else {
-                // Configuração de fallback para o ambiente de debug/desenvolvimento local
-                keyAlias = "androiddebugkey" 
+                // Fallback para ambiente local (debug)
+                keyAlias = "androiddebugkey"
                 storePassword = "android"
                 keyPassword = "android"
+                storeFile = rootProject.file("../.android/debug.keystore")
             }
         }
     }
@@ -84,8 +82,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // CRUCIAL: Aplica a configuração de assinatura 'release' que acabamos de definir
-            signingConfig = signingConfigs.getByName("release") 
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
