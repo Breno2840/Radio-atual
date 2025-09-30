@@ -1,8 +1,20 @@
 // lib/widgets/audio_player_handler.dart
+
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/radio_station.dart'; 
-// Importamos o modelo para usar o método estático saveStation
+
+// --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM (A CORREÇÃO) ---
+MediaItem createMediaItem(RadioStation station) {
+  return MediaItem(
+    id: station.streamUrl, 
+    album: station.name, 
+    title: station.name, 
+    artist: station.location, 
+    artUri: Uri.parse(station.artUrl)
+  );
+}
+// -------------------------------------------------------------
 
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
@@ -14,7 +26,6 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       if (mediaItemAtual == null) return;
       final title = metadata?.info?.title;
       
-      // O título pode vir no formato "Artista - Música", se for diferente do nome da rádio (album), atualiza.
       if (title != null && title.isNotEmpty && title != mediaItemAtual.album) {
         final novoMediaItem = mediaItemAtual.copyWith(title: title);
         mediaItem.add(novoMediaItem);
@@ -23,18 +34,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
   }
   
-  // Toca uma nova estação de rádio (Chamado pela UI)
   Future<void> playStation(RadioStation station) async {
-    // Ação CRUCIAL: Salvar a estação no armazenamento local antes de tocar
+    // Ação: Salvar a estação no armazenamento local
     await RadioStation.saveStation(station); 
     
-    final mediaItem = MediaItem(
-      id: station.streamUrl, 
-      album: station.name, // Usando o nome da rádio como álbum
-      title: station.name, // Título inicial é o nome da rádio
-      artist: station.location, 
-      artUri: Uri.parse(station.artUrl)
-    );
+    // Ação: Criar o MediaItem usando a função de utilidade
+    final mediaItem = createMediaItem(station); 
     
     await _player.setAudioSource(AudioSource.uri(Uri.parse(station.streamUrl)));
     this.mediaItem.add(mediaItem);
