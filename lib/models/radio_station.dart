@@ -1,5 +1,7 @@
 // lib/models/radio_station.dart
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class RadioStation {
   final String name;
   final String frequency;
@@ -16,6 +18,33 @@ class RadioStation {
     required this.streamUrl,
     required this.artUrl,
   });
+
+  // Chave usada para armazenar a URL do stream
+  static const _lastStreamUrlKey = 'last_stream_url';
+
+  // --- MÉTODOS DE PERSISTÊNCIA ---
+
+  // 1. Salva a URL da rádio atual
+  static Future<void> saveLastPlayed(String streamUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastStreamUrlKey, streamUrl);
+  }
+
+  // 2. Carrega a URL da última rádio
+  static Future<String?> getLastPlayedUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastStreamUrlKey);
+  }
+
+  // 3. Encontra a estação na lista usando a URL salva
+  static RadioStation? findStationByUrl(String url) {
+    try {
+      return radioStations.firstWhere((station) => station.streamUrl == url);
+    } catch (_) {
+      // Retorna null se a URL salva não for encontrada na lista atual
+      return null;
+    }
+  }
 }
 
 // Lista completa e atualizada de estações de rádio
@@ -117,8 +146,7 @@ const List<RadioStation> radioStations = [
     streamUrl: 'https://fmfortaleza.jmvstream.com/FMFortaleza_live',
     artUrl: 'https://425w010y9m.ucarecd.net/06018b3e-22be-45e6-b305-97e12f104b9d/-/preview/1000x1000/',
   ),
-  
-  // NOVAS RÁDIOS (Movidas para o final da Lista)
+  // RÁDIOS NOVAS
   RadioStation(
     name: 'Rádio Jaraguá',
     frequency: '101.3',
