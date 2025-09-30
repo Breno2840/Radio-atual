@@ -56,12 +56,13 @@ android {
 
         create("release") {
             if (signingProps.isNotEmpty()) {
-                storeFile = rootProject.file("app/upload-keystore.jks")
-                keyAlias = signingProps.getProperty("keyAlias")
+                storeFile = rootProject.file("app/meuapp.keystore")
                 storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
                 keyPassword = signingProps.getProperty("keyPassword")
+                storeType = "PKCS12" // OBRIGATÓRIO para seu keystore
             } else {
-                // Fallback local (debug)
+                // Fallback para ambiente local (debug)
                 keyAlias = "androiddebugkey"
                 storePassword = "android"
                 keyPassword = "android"
