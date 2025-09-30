@@ -37,7 +37,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   // NOVO MÉTODO: Carrega o MediaItem sem tocar (usado na inicialização)
   Future<void> loadStation(RadioStation station) async {
     final mediaItem = createMediaItem(station);
-    await super.setMediaItem(mediaItem);
+    this.mediaItem.add(mediaItem); // ✅ Corrigido: não usa super.setMediaItem()
   }
   
   Future<void> playStation(RadioStation station) async {
