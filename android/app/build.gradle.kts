@@ -1,4 +1,4 @@
-// android/app/build.gradle.kts (Kotlin DSL)
+// android/app/build.gradle.kts
 
 import java.util.Properties
 import java.io.FileInputStream
@@ -9,10 +9,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// --- FUNÇÃO AUXILIAR PARA LER PROPRIEDADES DE ARQUIVOS ---
 fun getSigningConfigProperties(): Properties {
     val properties = Properties()
-    // Busca o arquivo key.properties na pasta 'android/' (criado pelo CI/CD)
     val propertiesFile = rootProject.file("key.properties")
     if (propertiesFile.exists()) {
         propertiesFile.inputStream().use { properties.load(it) }
@@ -20,7 +18,6 @@ fun getSigningConfigProperties(): Properties {
     return properties
 }
 
-// --- LEITURA DAS PROPRIEDADES DO local.properties ---
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -54,19 +51,17 @@ android {
         versionName = flutterVersionName
     }
 
-    // --- CONFIGURAÇÃO DE ASSINATURA (SIGNING CONFIG) ---
     signingConfigs {
         val signingProps = getSigningConfigProperties()
 
         create("release") {
             if (signingProps.isNotEmpty()) {
-                // Usado no CI/CD (GitHub Actions)
                 storeFile = rootProject.file("app/upload-keystore.jks")
                 keyAlias = signingProps.getProperty("keyAlias")
                 storePassword = signingProps.getProperty("storePassword")
                 keyPassword = signingProps.getProperty("keyPassword")
             } else {
-                // Fallback para ambiente local (debug)
+                // Fallback local (debug)
                 keyAlias = "androiddebugkey"
                 storePassword = "android"
                 keyPassword = "android"
