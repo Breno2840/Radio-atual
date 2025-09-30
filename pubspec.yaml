@@ -15,6 +15,9 @@ dependencies:
   just_audio: ^0.9.36
   audio_session: ^0.1.18
 
+  # Persistência de dados simples para a última rádio ouvida
+  shared_preferences: ^2.2.3
+
   # Pacotes para permissões e info
   permission_handler: ^11.3.1
   device_info_plus: ^10.1.0
