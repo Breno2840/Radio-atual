@@ -38,7 +38,8 @@ jobs:
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
           mkdir -p android/app
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          # Usa printf para evitar adicionar \n no final (evita corromper o binário)
+          printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
       # 6️⃣ Criar o arquivo key.properties com os valores REAIS dos segredos
       - name: Criar Arquivo key.properties com Segredos
