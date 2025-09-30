@@ -24,19 +24,19 @@ class RadioStation {
 
   // --- MÉTODOS DE PERSISTÊNCIA ---
 
-  // 1. Salva a URL da rádio atual
+  /// Salva a URL da rádio atual no armazenamento local.
   static Future<void> saveLastPlayed(String streamUrl) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_lastStreamUrlKey, streamUrl);
   }
 
-  // 2. Carrega a URL da última rádio
+  /// Carrega a URL da última rádio salva.
   static Future<String?> getLastPlayedUrl() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_lastStreamUrlKey);
   }
 
-  // 3. Encontra a estação na lista usando a URL salva
+  /// Encontra o objeto RadioStation na lista usando a URL salva.
   static RadioStation? findStationByUrl(String url) {
     try {
       return radioStations.firstWhere((station) => station.streamUrl == url);
@@ -49,7 +49,7 @@ class RadioStation {
 
 // Lista completa e atualizada de estações de rádio
 const List<RadioStation> radioStations = [
-  // RÁDIOS EXISTENTES (Mantidas no Topo da Lista)
+  // RÁDIO PADRÃO (Índice 0)
   RadioStation(
     name: 'Rádio Jovem Pan',
     frequency: '100.9',
@@ -146,7 +146,6 @@ const List<RadioStation> radioStations = [
     streamUrl: 'https://fmfortaleza.jmvstream.com/FMFortaleza_live',
     artUrl: 'https://425w010y9m.ucarecd.net/06018b3e-22be-45e6-b305-97e12f104b9d/-/preview/1000x1000/',
   ),
-  // RÁDIOS NOVAS
   RadioStation(
     name: 'Rádio Jaraguá',
     frequency: '101.3',
