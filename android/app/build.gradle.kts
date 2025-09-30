@@ -63,14 +63,13 @@ android {
             // Verifica se o arquivo key.properties foi carregado (indicando CI/CD)
             if (signingProps.isNotEmpty()) {
                 // Configuração usada APENAS no CI/CD:
-                // storeFile é o arquivo que o workflow decodifica e salva em android/app/
-                storeFile = file("android/app/" + signingProps.getProperty("storeFile", "upload-keystore.jks"))
+                // Aponta diretamente para onde o arquivo JKS é decodificado pelo workflow
+                storeFile = file(project.rootProject.file("android/app/upload-keystore.jks"))
                 keyAlias = signingProps.getProperty("keyAlias")
                 storePassword = signingProps.getProperty("storePassword")
                 keyPassword = signingProps.getProperty("keyPassword")
             } else {
                 // Configuração de fallback para o ambiente de debug/desenvolvimento local
-                // Você pode usar uma chave de debug padrão aqui
                 keyAlias = "androiddebugkey" 
                 storePassword = "android"
                 keyPassword = "android"
