@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/radio_station.dart'; 
 
-// --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM (A CORREÇÃO) ---
+// --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM ---
 MediaItem createMediaItem(RadioStation station) {
   return MediaItem(
     id: station.streamUrl, 
@@ -32,6 +32,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       }
     });
     _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
+  }
+
+  // NOVO MÉTODO: Carrega o MediaItem sem tocar (usado na inicialização)
+  Future<void> loadStation(RadioStation station) async {
+    final mediaItem = createMediaItem(station);
+    await super.setMediaItem(mediaItem);
   }
   
   Future<void> playStation(RadioStation station) async {
