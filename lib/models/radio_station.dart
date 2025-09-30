@@ -103,7 +103,7 @@ const List<RadioStation> radioStations = [
     frequency: '92.7',
     band: 'FM',
     location: 'Teresina, PI',
-    streamUrl: 'https://tropical.jmvstream.com/stream',
+    streamUrl: 'https://ssl1.transmissaodigital.com:2780/stream',
     artUrl:
         'https://425w010y9m.ucarecd.net/88343274-c74b-42a8-a392-409b3b9467a6/-/preview/1000x1000/',
   ),
