@@ -3,17 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 // Imports dos seus arquivos de código
-import 'pages/player_screen.dart';
-import 'pages/station_list_screen.dart';
 import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart';
+import 'layout/app_layout.dart'; // <--- NOVO IMPORT
 
-// Variável global para o handler, necessário para ser acessível no _MyAppState
+// Variável global para o handler
 late AudioPlayerHandler _audioHandler; 
 
 Future<void> main() async {
@@ -33,12 +30,10 @@ Future<void> main() async {
     }
   }
 
-  // --- LÓGICA DE CARREGAMENTO DA ÚLTIMA RÁDIO (AQUI!) ---
+  // LÓGICA DE CARREGAMENTO DA ÚLTIMA RÁDIO
   RadioStation? lastStation = await RadioStation.loadLastStation();
-  // Se não houver rádio salva, usa a primeira rádio da lista (Jovem Pan)
   final initialStation = lastStation ?? radioStations.first;
-  // --------------------------------------------------------
-
+  
   // Inicializa o AudioService
   _audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
@@ -48,63 +43,18 @@ Future<void> main() async {
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
     ),
-  ) as AudioPlayerHandler; // Cast necessário, pois o builder retorna o tipo concreto
+  ) as AudioPlayerHandler;
 
   // Carrega os metadados da última rádio salva (ou a rádio padrão) no handler.
-  // Isso preenche o Mini-Player na inicialização, mas NÃO começa a tocar.
   await _audioHandler.setMediaItem(_audioHandler.createMediaItem(initialStation));
 
   runApp(MyApp(audioHandler: _audioHandler));
 }
 
-class MyApp extends StatefulWidget {
+// MyApp agora é um simples StatelessWidget
+class MyApp extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
   const MyApp({super.key, required this.audioHandler});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  Color _startColor = const Color(0xFF1D244D);
-  Color _endColor = const Color(0xFF000000);
-  final Color _defaultStartColor = const Color(0xFF1D244D);
-  final Color _defaultEndColor = const Color(0xFF000000);
-  Uri? _lastArtUri;
-
-  // Estado para controlar a tela atual: Player (true) ou Lista (false)
-  bool _showingPlayer = true;
-
-  void _toggleScreen(bool showPlayer) {
-    // CORREÇÃO: Força a atualização do estado da tela
-    if (_showingPlayer != showPlayer) {
-      setState(() {
-        _showingPlayer = showPlayer;
-        // Quando alterna para a Lista, força o uso das cores escuras fixas
-        if (!showPlayer) {
-          _startColor = _defaultStartColor;
-          _endColor = _defaultEndColor;
-        }
-      });
-    }
-  }
-
-  // Correção: Função de atualização do fundo dinâmico com verificação de URL
-  Future<void> _updateBackgroundColors(Uri artUri) async {
-    final provider = CachedNetworkImageProvider(artUri.toString());
-    final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
-
-    // CRUCIAL: Só atualiza o estado se a arte atual for a mesma da URL que iniciou a função
-    if (mounted && artUri == _lastArtUri) {
-      setState(() {
-        _startColor =
-            paletteGenerator.dominantColor?.color ?? _defaultStartColor;
-        _endColor = paletteGenerator.darkMutedColor?.color ??
-            paletteGenerator.darkVibrantColor?.color ??
-            _defaultEndColor;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,76 +62,8 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Minha Rádio',
       theme: ThemeData.dark(),
-      home: StreamBuilder<MediaItem?>(
-        // O StreamBuilder DEVE permanecer aqui, pois ele é a fonte de verdade para MediaItem
-        stream: widget.audioHandler.mediaItem,
-        builder: (context, snapshot) {
-          final mediaItem = snapshot.data;
-
-          // Lógica de Cor Dinâmica:
-          if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
-            _lastArtUri = mediaItem.artUri;
-            if (mediaItem.artUri != null) {
-              _updateBackgroundColors(mediaItem.artUri!);
-            }
-          }
-
-          // Cores usadas: Dinâmicas se for Player, ou as Cores fixas
-          final startColor = _showingPlayer ? _startColor : _defaultStartColor;
-          final endColor = _showingPlayer ? _endColor : _defaultEndColor;
-
-          RadioStation? playingStation;
-          if (mediaItem != null) {
-            // Usa o ID (streamUrl) para encontrar a rádio na lista
-            playingStation = radioStations.firstWhere(
-              (station) => station.streamUrl == mediaItem.id,
-              orElse: () => radioStations.first,
-            );
-          } else {
-            // Garante que o Player inicie com a rádio carregada na inicialização (seja a salva ou a padrão)
-            // Se o MediaItem é null, usa a rádio padrão (Jovem Pan)
-            playingStation = radioStations.first; 
-          }
-
-          // Define a tela a ser exibida
-          Widget currentPage;
-
-          // Se estamos no modo Player OU se algo está tocando, mostramos o PlayerScreen
-          if (_showingPlayer) {
-            currentPage = PlayerScreen(
-              audioHandler: widget.audioHandler,
-              mediaItem: mediaItem,
-              station: playingStation!,
-              onShowList: () => _toggleScreen(false), // O botão no Player define _showingPlayer para false
-            );
-          } else {
-            // Caso contrário, mostramos a Lista de Rádios
-            currentPage = StationListScreen(
-              audioHandler: widget.audioHandler,
-              onShowPlayer: () => _toggleScreen(true), // O botão no MiniPlayer/Lista define _showingPlayer para true
-            );
-          }
-
-          return AnimatedContainer(
-            duration: const Duration(seconds: 1),
-            decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [startColor, endColor])),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: currentPage, // A tela que está sendo exibida.
-                ),
-              ),
-              bottomNavigationBar: null,
-            ),
-          );
-        },
-      ),
+      // O home agora aponta diretamente para o novo layout
+      home: AppLayout(audioHandler: audioHandler),
     );
   }
 }
