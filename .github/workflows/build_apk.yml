@@ -37,21 +37,19 @@ jobs:
       # 5️⃣ Decodificar a chave secreta Base64 e criar o arquivo JKS
       - name: Decodificar Keystore e Salvar Arquivo
         run: |
-          # O arquivo .jks é salvo dentro da pasta Android/app (Caminho completo)
+          mkdir -p android/app
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
           
       # 6️⃣ Criar o arquivo key.properties com os valores REAIS dos segredos
       - name: Criar Arquivo key.properties com Segredos
         shell: bash
         run: |
-          # Cria o key.properties com os VALORES para o Gradle ler.
-          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "storeFile=app/upload-keystore.jks" > android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
           
       # --- FIM DA CONFIGURAÇÃO DE SEGURANÇA ---
-
 
       # --- 7️⃣ Comando de Build de Release ---
       - name: Build Android APK - Release
