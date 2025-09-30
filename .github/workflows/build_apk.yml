@@ -1,7 +1,6 @@
 name: Build Flutter Android Release
 
 on:
-  # Permite que você inicie o workflow manualmente na aba Actions do GitHub
   workflow_dispatch:
 
 jobs:
@@ -12,51 +11,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- 1️⃣ Checar o código ---
       - uses: actions/checkout@v3
 
-      # --- 2️⃣ Configurar Java ---
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: "17"
 
-      # --- 3️⃣ Configurar Flutter ---
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           
-      # --- 4️⃣ Instalar dependências ---
       - name: Install dependencies
         run: flutter pub get
         
-      # --- CONFIGURAÇÃO DE SEGURANÇA DA CHAVE KEYSTORE ---
-      
-      # 5️⃣ Decodificar a chave secreta Base64 e criar o arquivo JKS
-      - name: Decodificar Keystore e Salvar Arquivo
+      # 🔐 Descriptografar o keystore
+      - name: Descriptografar keystore
         run: |
           mkdir -p android/app
-          # Usa printf para evitar adicionar \n no final (evita corromper o binário)
-          printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -in android/app/meuapp.keystore.enc -out android/app/meuapp.keystore -k "${{ secrets.KEYSTORE_DECRYPT_PASSWORD }}"
           
-      # 6️⃣ Criar o arquivo key.properties com os valores REAIS dos segredos
+      # 📄 Criar key.properties com os segredos
       - name: Criar Arquivo key.properties com Segredos
-        shell: bash
         run: |
-          echo "storeFile=app/upload-keystore.jks" > android/key.properties
+          echo "storeFile=app/meuapp.keystore" > android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
-          
-      # --- FIM DA CONFIGURAÇÃO DE SEGURANÇA ---
 
-      # --- 7️⃣ Comando de Build de Release ---
+      # 🛠️ Build do APK
       - name: Build Android APK - Release
         run: flutter build apk --release
         
-      # --- 8️⃣ Criar Release e Anexar APK ---
+      # 📦 Criar release no GitHub
       - name: Criar Release e Anexar APK
         uses: softprops/action-gh-release@v1
         with:
