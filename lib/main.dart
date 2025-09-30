@@ -1,3 +1,5 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
@@ -5,10 +7,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 
-// Imports dos seus arquivos de código
+// Imports dos seus arquivos de código (todos necessários)
 import 'models/radio_station.dart';
-import 'widgets/audio_player_handler.dart';
-import 'layout/app_layout.dart'; // <--- NOVO IMPORT
+import 'widgets/audio_player_handler.dart'; // Contém createMediaItem
+import 'layout/app_layout.dart'; 
 
 // Variável global para o handler
 late AudioPlayerHandler _audioHandler; 
@@ -46,8 +48,9 @@ Future<void> main() async {
   ) as AudioPlayerHandler;
 
   // Carrega os metadados da última rádio salva (ou a rádio padrão) no handler.
-  await _audioHandler.setMediaItem(_audioHandler.createMediaItem(initialStation));
-
+  final initialMediaItem = createMediaItem(initialStation); // CHAMADA CORRETA DA FUNÇÃO
+  await _audioHandler.setMediaItem(initialMediaItem); // CHAMADA CORRETA DO MÉTODO
+  
   runApp(MyApp(audioHandler: _audioHandler));
 }
 
