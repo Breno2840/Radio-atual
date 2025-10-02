@@ -27,6 +27,9 @@ dependencies:
   glassmorphism: ^3.0.0
   palette_generator: ^0.3.3+3
 
+  # Pacote para requisições HTTP (necessário para carregar o JSON do Gist)
+  http: ^0.15.0
+
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
