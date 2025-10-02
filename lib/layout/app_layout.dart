@@ -63,6 +63,7 @@ class _AppLayoutState extends State<AppLayout> {
     return FutureBuilder<List<RadioStation>>(
       future: widget.radioStationsFuture,
       builder: (context, snapshot) {
+        // ⚠️ ESTADO DE CARREGAMENTO
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             backgroundColor: Colors.black,
@@ -70,6 +71,7 @@ class _AppLayoutState extends State<AppLayout> {
           );
         }
 
+        // ⚠️ ESTADO DE ERRO — MOSTRA TELA BONITA COM BOTÃO
         if (snapshot.hasError) {
           return Scaffold(
             backgroundColor: Colors.black,
@@ -111,6 +113,7 @@ class _AppLayoutState extends State<AppLayout> {
           );
         }
 
+        // ✅ TUDO CERTO — CONTINUA COM A LÓGICA DO PLAYER E LISTA
         final radioStations = snapshot.data!;
 
         return StreamBuilder<MediaItem?>(
