@@ -1,4 +1,3 @@
-// lib/models/radio_station.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,10 +62,8 @@ class RadioStation {
   }
 }
 
-// 🔗 URL do seu Gist (RAW) — já configurada!
 Future<List<RadioStation>> fetchRadioStations() async {
   final url = Uri.parse('https://gist.githubusercontent.com/Breno2840/d66d95ef976ae84ff5de3d2cb9631036/raw/radios.json');
-
   try {
     final response = await http.get(url);
     if (response.statusCode == 200) {
