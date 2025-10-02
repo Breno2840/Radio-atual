@@ -101,7 +101,7 @@ class _AppLayoutState extends State<AppLayout> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
                   ),
@@ -150,7 +150,7 @@ class _AppLayoutState extends State<AppLayout> {
               currentPage = StationListScreen(
                 audioHandler: widget.audioHandler,
                 onShowPlayer: () => _toggleScreen(true),
-                radioStationsFuture: widget.radioStationsFuture, // passa para a lista
+                radioStationsFuture: widget.radioStationsFuture,
               );
             }
 
