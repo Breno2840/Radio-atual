@@ -63,10 +63,9 @@ class RadioStation {
   }
 }
 
-// 🔥 Nova função: busca a lista de rádios de um JSON online
+// 🔗 URL do seu Gist (RAW) — já configurada!
 Future<List<RadioStation>> fetchRadioStations() async {
-  // 🔗 Substitua esta URL pela URL RAW do seu Gist
-  final url = Uri.parse('https://gist.githubusercontent.com/seuusuario/seu-gist-id/raw/radios.json');
+  final url = Uri.parse('https://gist.githubusercontent.com/Breno2840/d66d95ef976ae84ff5de3d2cb9631036/raw/radios.json');
 
   try {
     final response = await http.get(url);
@@ -77,7 +76,6 @@ Future<List<RadioStation>> fetchRadioStations() async {
       throw Exception('Falha ao carregar: status ${response.statusCode}');
     }
   } catch (e) {
-    // Em vez de fallback, vamos lançar o erro para exibir tela de "sem conexão"
     throw Exception('Sem conexão com a internet ou erro no servidor');
   }
 }
