@@ -10,24 +10,24 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Pacotes para áudio em segundo plano
+  # Áudio
   audio_service: ^0.18.12
   just_audio: ^0.9.36
   audio_session: ^0.1.18
 
-  # Persistência de dados simples para a última rádio ouvida
+  # Persistência
   shared_preferences: ^2.2.3
 
-  # Pacotes para permissões e info
+  # Permissões e info
   permission_handler: ^11.3.1
   device_info_plus: ^10.1.0
 
-  # Pacotes para a interface
+  # Interface
   cached_network_image: ^3.3.1 
   glassmorphism: ^3.0.0
   palette_generator: ^0.3.3+3
 
-  # Pacote para requisições HTTP (necessário para carregar o JSON do Gist)
+  # Requisições HTTP
   http: ^1.5.0
 
   cupertino_icons: ^1.0.2
