@@ -115,6 +115,7 @@ class _AppLayoutState extends State<AppLayout> {
         // Estrutura do Layout com Gradiente e Scaffold
         return AnimatedContainer(
           duration: const Duration(seconds: 1),
+          // GARANTE QUE O GRADIENTE OCUPA 100% DA TELA
           decoration: BoxDecoration(
               gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -122,11 +123,11 @@ class _AppLayoutState extends State<AppLayout> {
                   colors: [startColor, endColor])),
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: currentPage, // A tela que está sendo exibida.
-              ),
+            // ALTERADO: Removido o SafeArea, substituído por Padding simples
+            body: Padding( 
+              // Mantém o padding HORIZONTAL, o padding vertical é responsabilidade da currentPage
+              padding: const EdgeInsets.symmetric(horizontal: 16.0), 
+              child: currentPage, // A tela que está sendo exibida.
             ),
             bottomNavigationBar: null,
           ),
