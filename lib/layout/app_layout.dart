@@ -1,3 +1,4 @@
+// lib/layout/app_layout.dart
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -42,7 +43,8 @@ class _AppLayoutState extends State<AppLayout> {
 
     if (mounted && artUri == _lastArtUri) {
       setState(() {
-        _startColor = paletteGenerator.dominantColor?.color ?? _defaultStartColor;
+        _startColor =
+            paletteGenerator.dominantColor?.color ?? _defaultStartColor;
         _endColor = paletteGenerator.darkMutedColor?.color ??
             paletteGenerator.darkVibrantColor?.color ??
             _defaultEndColor;
@@ -72,7 +74,7 @@ class _AppLayoutState extends State<AppLayout> {
           currentPage = PlayerScreen(
             audioHandler: widget.audioHandler,
             mediaItem: mediaItem,
-            onShowList: () => _toggleScreen(false),
+            onShowList: () => _toggleScreen(false), // ✅ Sem station!
           );
         } else {
           currentPage = StationListScreen(
