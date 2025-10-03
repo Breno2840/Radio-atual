@@ -1,0 +1,57 @@
+name: Build Flutter Split APKs (per ABI)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+        
+      # 🔐 Descriptografar o keystore
+      - name: Descriptografar keystore
+        run: |
+          mkdir -p android/app
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -in android/app/meuapp.keystore.enc -out android/app/meuapp.keystore -k "${{ secrets.KEYSTORE_DECRYPT_PASSWORD }}"
+          
+      # 📄 Criar key.properties
+      - name: Criar Arquivo key.properties com Segredos
+        run: |
+          echo "storeFile=app/meuapp.keystore" > android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
+
+      # 🛠️ Build dos APKs separados por arquitetura
+      - name: Build Split APKs --release
+        run: flutter build apk --split-per-abi --release
+        
+      # 📦 Criar Release e Anexar os 3 APKs
+      - name: Criar Release e Anexar APKs
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: release-v1.0.${{ github.run_number }}
+          name: Versão de Produção v1.0 (APKs por arquitetura)
+          files: |
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
