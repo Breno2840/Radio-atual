@@ -35,8 +35,19 @@ class PlayerScreen extends StatelessWidget {
     final double buttonHeight = screenHeight * 0.08; // ~8% da altura da tela
     final double buttonWidth = imageSize * 0.8;
 
-    return SafeArea(
-      bottom: true, // Evita corte na barra de navegação
+    // NOVO: Obtém o padding do sistema (barra de status e barra de navegação)
+    final EdgeInsets systemPadding = MediaQuery.of(context).padding;
+
+    // ALTERADO: Substitui o SafeArea por Padding manual
+    return Padding(
+      padding: EdgeInsets.only(
+        // Adiciona o padding da barra de status no topo
+        top: systemPadding.top,
+        // Adiciona o padding da barra de navegação no fundo
+        bottom: systemPadding.bottom, 
+        left: 16.0,
+        right: 16.0,
+      ),
       child: Column(
         children: [
           // Botão para ir para a lista (Ícone de Grade)
