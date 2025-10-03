@@ -11,6 +11,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart'; 
 import 'layout/app_layout.dart'; 
+import 'pages/splash_screen.dart'; // NOVO IMPORT: Sua tela de splash
 
 // Variável global para o handler: VOLTA AO TIPO CONCRETO
 late AudioPlayerHandler _audioHandler; 
@@ -64,8 +65,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Minha Rádio',
       theme: ThemeData.dark(),
-      // O home aponta para o AppLayout
-      home: AppLayout(audioHandler: audioHandler),
+      // ALTERADO: O 'home' agora é a SplashScreen
+      home: SplashScreen(audioHandler: audioHandler),
     );
   }
 }
