@@ -1,4 +1,6 @@
+// lib/models/radio_station.dart
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -64,15 +66,37 @@ class RadioStation {
 
 Future<List<RadioStation>> fetchRadioStations() async {
   final url = Uri.parse('https://gist.githubusercontent.com/Breno2840/d66d95ef976ae84ff5de3d2cb9631036/raw/radios.json');
+
   try {
-    final response = await http.get(url);
+    // Cria um cliente HTTP com timeout
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 10)
+      ..idleTimeout = const Duration(seconds: 10);
+
+    final request = await client.getUrl(url);
+    final response = await request.close();
+
     if (response.statusCode == 200) {
-      final List<dynamic> jsonList = json.decode(response.body);
+      final jsonString = await response.transform(const Utf8Decoder()).join();
+      final List<dynamic> jsonList = json.decode(jsonString);
+      client.close();
       return jsonList.map((e) => RadioStation.fromJson(e as Map<String, dynamic>)).toList();
     } else {
-      throw Exception('Falha ao carregar: status ${response.statusCode}');
+      client.close();
+      throw Exception('HTTP ${response.statusCode}');
     }
   } catch (e) {
-    throw Exception('Sem conexão com a internet ou erro no servidor');
+    print('⚠️ Falha ao carregar do Gist: $e');
+    // Fallback local com 1 rádio real (ex: Jovem Pan)
+    return [
+      const RadioStation(
+        name: 'Rádio Jovem Pan',
+        frequency: '100.9',
+        band: 'FM',
+        location: 'São Paulo, SP',
+        streamUrl: 'https://stream.zeno.fm/c45wbq2us3buv',
+        artUrl: 'https://425w010y9m.ucarecd.net/9f5576a9-38da-48b4-9fab-67b09984ae0b/-/preview/1000x1000/',
+      ),
+    ];
   }
 }
