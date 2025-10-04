@@ -1,3 +1,5 @@
+// lib/pages/player_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,15 +33,14 @@ class PlayerScreen extends StatelessWidget {
     // Tamanhos responsivos
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double imageSize = screenWidth * 0.7; // 70% da largura da tela
-    final double buttonHeight = screenHeight * 0.08; // ~8% da altura da tela
+    final double imageSize = screenWidth * 0.7;
+    final double buttonHeight = screenHeight * 0.08;
     final double buttonWidth = imageSize * 0.8;
 
     return SafeArea(
-      bottom: true, // Evita corte na barra de navegação
+      bottom: true,
       child: Column(
         children: [
-          // Botão para ir para a lista (Ícone de Grade)
           Align(
             alignment: Alignment.topRight,
             child: IconButton(
@@ -137,33 +138,36 @@ class PlayerScreen extends StatelessWidget {
                             Colors.white.withOpacity(0.5)
                           ],
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (!playing)
-                              IconButton(
+                        child: playing
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.skip_previous_rounded),
+                                    iconSize: buttonHeight * 0.6,
+                                    color: Colors.white,
+                                    onPressed: audioHandler.playPrevious,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.pause_rounded),
+                                    iconSize: buttonHeight * 0.6,
+                                    color: Colors.white,
+                                    onPressed: audioHandler.pause,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.skip_next_rounded),
+                                    iconSize: buttonHeight * 0.6,
+                                    color: Colors.white,
+                                    onPressed: audioHandler.playNext,
+                                  ),
+                                ],
+                              )
+                            : IconButton(
                                 icon: const Icon(Icons.play_arrow_rounded),
                                 iconSize: buttonHeight * 0.6,
                                 color: Colors.white,
                                 onPressed: () => audioHandler.playStation(station),
-                              )
-                            else ...[
-                              IconButton(
-                                icon: const Icon(Icons.pause_rounded),
-                                iconSize: buttonHeight * 0.6,
-                                color: Colors.white,
-                                onPressed: audioHandler.pause,
                               ),
-                              const SizedBox(width: 20),
-                              IconButton(
-                                icon: const Icon(Icons.stop_rounded),
-                                iconSize: buttonHeight * 0.6,
-                                color: Colors.white.withOpacity(0.8),
-                                onPressed: audioHandler.stop,
-                              )
-                            ]
-                          ],
-                        ),
                       );
                     }
                   },
