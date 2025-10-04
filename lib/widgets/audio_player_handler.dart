@@ -7,7 +7,7 @@ import '../models/radio_station.dart';
 // --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM ---
 MediaItem createMediaItem(RadioStation station) {
   return MediaItem(
-    id: station.streamUrl, 
+    id: station.streamUrl.trim(), 
     album: station.name, 
     title: station.name, 
     artist: station.location, 
@@ -18,6 +18,8 @@ MediaItem createMediaItem(RadioStation station) {
 
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
+  final List<RadioStation> _stations = radioStations;
+
   AudioPlayerHandler() { _init(); }
   
   Future<void> _init() async {
@@ -37,16 +39,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   // NOVO MÉTODO: Carrega o MediaItem sem tocar (usado na inicialização)
   Future<void> loadStation(RadioStation station) async {
     final mediaItem = createMediaItem(station);
-    this.mediaItem.add(mediaItem); // ✅ Corrigido: não usa super.setMediaItem()
+    this.mediaItem.add(mediaItem);
   }
   
   Future<void> playStation(RadioStation station) async {
-    // Ação: Salvar a estação no armazenamento local
     await RadioStation.saveStation(station); 
-    
-    // Ação: Criar o MediaItem usando a função de utilidade
     final mediaItem = createMediaItem(station); 
-    
     await _player.setAudioSource(AudioSource.uri(Uri.parse(station.streamUrl)));
     this.mediaItem.add(mediaItem);
     play();
@@ -64,7 +62,26 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     mediaItem.add(null);
     await super.stop();
   }
-  
+
+  // === NOVOS MÉTODOS ===
+  int? _getCurrentIndex(String? streamUrl) {
+    if (streamUrl == null) return null;
+    return _stations.indexWhere((station) => station.streamUrl.trim() == streamUrl.trim());
+  }
+
+  Future<void> playNext() async {
+    final currentIndex = _getCurrentIndex(mediaItem.value?.id);
+    if (currentIndex == null || currentIndex >= _stations.length - 1) return;
+    await playStation(_stations[currentIndex + 1]);
+  }
+
+  Future<void> playPrevious() async {
+    final currentIndex = _getCurrentIndex(mediaItem.value?.id);
+    if (currentIndex == null || currentIndex <= 0) return;
+    await playStation(_stations[currentIndex - 1]);
+  }
+  // ====================
+
   PlaybackState _transformEvent(PlaybackEvent event) {
     return PlaybackState(
       controls: [if (_player.playing) MediaControl.pause else MediaControl.play, MediaControl.stop],
