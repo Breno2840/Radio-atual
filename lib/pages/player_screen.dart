@@ -29,25 +29,73 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   Timer? _sleepTimer;
   int? _remainingSeconds;
+  StreamSubscription<PlaybackState>? _playbackStateSubscription;
+  bool _isPausedByUser = false; // para não reiniciar o timer ao sair/reentrar
+
+  @override
+  void initState() {
+    super.initState();
+    // Ouvir mudanças no estado de reprodução
+    _playbackStateSubscription = widget.audioHandler.playbackState.listen((state) {
+      final isPlaying = state.playing;
+      if (_sleepTimer != null) {
+        if (isPlaying && _isPausedByUser) {
+          // Retomar o timer
+          _resumeSleepTimer();
+        } else if (!isPlaying && state.processingState == AudioProcessingState.ready) {
+          // Pausar o timer (só se estiver em estado "pronto", não carregando)
+          _pauseSleepTimer();
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
     _sleepTimer?.cancel();
+    _playbackStateSubscription?.cancel();
     super.dispose();
+  }
+
+  void _pauseSleepTimer() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    _isPausedByUser = true;
+  }
+
+  void _resumeSleepTimer() {
+    if (_remainingSeconds == null || _remainingSeconds! <= 0) return;
+    _isPausedByUser = false;
+    _sleepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds! > 0) {
+        setState(() {
+          _remainingSeconds = _remainingSeconds! - 1;
+        });
+      } else {
+        timer.cancel();
+        widget.audioHandler.stop();
+        _remainingSeconds = null;
+        _isPausedByUser = false;
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${widget.station.name} foi desligada pelo timer.')),
+        );
+      }
+    });
   }
 
   void _cancelSleepTimer() {
     _sleepTimer?.cancel();
     _sleepTimer = null;
     _remainingSeconds = null;
+    _isPausedByUser = false;
     setState(() {});
   }
 
   void _startSleepTimer(int minutes) {
     _cancelSleepTimer();
-    final totalSeconds = minutes * 60;
-    _remainingSeconds = totalSeconds;
-
+    _remainingSeconds = minutes * 60;
+    _isPausedByUser = false;
     _sleepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds! > 0) {
         setState(() {
@@ -66,7 +114,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   void _showTimerDialog() {
-    // ✅ Correção de tipo: extrai o valor com segurança
     final isPlaying = widget.audioHandler.playbackState.value?.playing ?? false;
     if (!isPlaying) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,7 +137,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               TextButton(
                 onPressed: () {
                   _cancelSleepTimer();
-                  Navigator.pop(context); // Fecha o diálogo ao cancelar
+                  Navigator.pop(context);
                 },
                 child: const Text('Cancelar timer', style: TextStyle(color: Colors.red)),
               ),
@@ -141,13 +188,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
       bottom: true,
       child: Column(
         children: [
-          // Linha superior com botões
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // ✅ Botão do timer: só ícone, sem fundo
                 IconButton(
                   icon: Icon(
                     Icons.access_alarm,
@@ -156,10 +201,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                   onPressed: _showTimerDialog,
                   tooltip: 'Definir timer para desligar',
-                  // Desabilita visualmente quando parado (opcional)
-                  // disabledColor: Colors.white.withOpacity(0.5),
                 ),
-                // Botão da lista
                 IconButton(
                   icon: const Icon(Icons.apps_rounded, color: Colors.white, size: 30),
                   onPressed: widget.onShowList,
@@ -168,7 +210,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Mostra tempo restante se o timer estiver ativo
           if (_remainingSeconds != null)
             Text(
               'Desliga em: ${_formatTime(_remainingSeconds!)}',
