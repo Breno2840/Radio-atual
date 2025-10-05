@@ -79,7 +79,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
             _buildTimerOption(60),
             if (_sleepTimer != null)
               TextButton(
-                onPressed: _cancelSleepTimer,
+                onPressed: () {
+                  _cancelSleepTimer();
+                  Navigator.pop(context); // 👈 FECHA O DIÁLOGO AO CANCELAR
+                },
                 child: const Text('Cancelar timer', style: TextStyle(color: Colors.red)),
               ),
           ],
@@ -135,30 +138,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Botão do timer (esquerda)
-                GlassmorphicContainer(
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  blur: 8,
-                  border: 1.5,
-                  linearGradient: LinearGradient(colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.15),
-                  ]),
-                  borderGradient: LinearGradient(colors: [
-                    Colors.white.withOpacity(0.4),
-                    Colors.white.withOpacity(0.4),
-                  ]),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: Icon(
-                      Icons.access_alarm,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    onPressed: _showTimerDialog,
+                // Botão do timer (esquerda) → SÓ ÍCONE, SEM FUNDO DE VIDRO
+                IconButton(
+                  icon: Icon(
+                    Icons.access_alarm,
+                    color: Colors.white,
+                    size: 30, // tamanho maior pra ficar visível
                   ),
+                  onPressed: _showTimerDialog,
                 ),
                 // Botão da lista (direita)
                 IconButton(
