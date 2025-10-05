@@ -66,6 +66,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   void _showTimerDialog() {
+    // Só mostra o diálogo se estiver tocando
+    if (!widget.audioHandler.playbackState.value?.playing ?? false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Toque em play primeiro para ativar o timer.')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -81,7 +89,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               TextButton(
                 onPressed: () {
                   _cancelSleepTimer();
-                  Navigator.pop(context); // 👈 FECHA O DIÁLOGO AO CANCELAR
+                  Navigator.pop(context);
                 },
                 child: const Text('Cancelar timer', style: TextStyle(color: Colors.red)),
               ),
@@ -143,9 +151,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   icon: Icon(
                     Icons.access_alarm,
                     color: Colors.white,
-                    size: 30, // tamanho maior pra ficar visível
+                    size: 30,
                   ),
                   onPressed: _showTimerDialog,
+                  // Desabilita o botão se não estiver tocando
+                  tooltip: (widget.audioHandler.playbackState.value?.playing ?? false)
+                      ? 'Definir timer'
+                      : 'Toque em play primeiro',
+                  disabledColor: Colors.white.withOpacity(0.5),
                 ),
                 // Botão da lista (direita)
                 IconButton(
