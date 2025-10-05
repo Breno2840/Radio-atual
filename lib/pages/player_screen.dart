@@ -66,8 +66,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   void _showTimerDialog() {
-    // Só mostra o diálogo se estiver tocando
-    if (!widget.audioHandler.playbackState.value?.playing ?? false) {
+    // ✅ Correção de tipo: extrai o valor com segurança
+    final isPlaying = widget.audioHandler.playbackState.value?.playing ?? false;
+    if (!isPlaying) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Toque em play primeiro para ativar o timer.')),
       );
@@ -89,7 +90,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               TextButton(
                 onPressed: () {
                   _cancelSleepTimer();
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Fecha o diálogo ao cancelar
                 },
                 child: const Text('Cancelar timer', style: TextStyle(color: Colors.red)),
               ),
@@ -146,7 +147,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Botão do timer (esquerda) → SÓ ÍCONE, SEM FUNDO DE VIDRO
+                // ✅ Botão do timer: só ícone, sem fundo
                 IconButton(
                   icon: Icon(
                     Icons.access_alarm,
@@ -154,13 +155,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     size: 30,
                   ),
                   onPressed: _showTimerDialog,
-                  // Desabilita o botão se não estiver tocando
-                  tooltip: (widget.audioHandler.playbackState.value?.playing ?? false)
-                      ? 'Definir timer'
-                      : 'Toque em play primeiro',
-                  disabledColor: Colors.white.withOpacity(0.5),
+                  tooltip: 'Definir timer para desligar',
+                  // Desabilita visualmente quando parado (opcional)
+                  // disabledColor: Colors.white.withOpacity(0.5),
                 ),
-                // Botão da lista (direita)
+                // Botão da lista
                 IconButton(
                   icon: const Icon(Icons.apps_rounded, color: Colors.white, size: 30),
                   onPressed: widget.onShowList,
@@ -169,7 +168,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Mostrar tempo restante (se ativo)
+          // Mostra tempo restante se o timer estiver ativo
           if (_remainingSeconds != null)
             Text(
               'Desliga em: ${_formatTime(_remainingSeconds!)}',
