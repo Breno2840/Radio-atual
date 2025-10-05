@@ -142,11 +142,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   borderRadius: 25,
                   blur: 8,
                   border: 1.5,
-                  linearGradient: const LinearGradient(colors: [
+                  linearGradient: LinearGradient(colors: [
                     Colors.white.withOpacity(0.1),
                     Colors.white.withOpacity(0.15),
                   ]),
-                  borderGradient: const LinearGradient(colors: [
+                  borderGradient: LinearGradient(colors: [
                     Colors.white.withOpacity(0.4),
                     Colors.white.withOpacity(0.4),
                   ]),
@@ -254,7 +254,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         blur: 10,
                         alignment: Alignment.center,
                         border: 2,
-                        linearGradient: const LinearGradient(
+                        linearGradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
@@ -262,7 +262,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             Colors.white.withOpacity(0.2)
                           ],
                         ),
-                        borderGradient: const LinearGradient(
+                        borderGradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
