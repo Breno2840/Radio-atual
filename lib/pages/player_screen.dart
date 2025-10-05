@@ -30,42 +30,29 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Timer? _sleepTimer;
   int? _remainingSeconds;
   StreamSubscription<PlaybackState>? _playbackStateSubscription;
-  bool _isPausedByUser = false; // para não reiniciar o timer ao sair/reentrar
 
   @override
   void initState() {
     super.initState();
-    // Ouvir mudanças no estado de reprodução
     _playbackStateSubscription = widget.audioHandler.playbackState.listen((state) {
       final isPlaying = state.playing;
-      if (_sleepTimer != null) {
-        if (isPlaying && _isPausedByUser) {
-          // Retomar o timer
-          _resumeSleepTimer();
-        } else if (!isPlaying && state.processingState == AudioProcessingState.ready) {
-          // Pausar o timer (só se estiver em estado "pronto", não carregando)
-          _pauseSleepTimer();
+      if (_remainingSeconds != null) {
+        if (isPlaying) {
+          // Garante que o timer esteja rodando
+          _ensureTimerIsRunning();
+        } else {
+          // Pausa o timer (cancela, mas mantém o tempo restante)
+          _sleepTimer?.cancel();
+          _sleepTimer = null;
         }
       }
     });
   }
 
-  @override
-  void dispose() {
-    _sleepTimer?.cancel();
-    _playbackStateSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _pauseSleepTimer() {
-    _sleepTimer?.cancel();
-    _sleepTimer = null;
-    _isPausedByUser = true;
-  }
-
-  void _resumeSleepTimer() {
+  void _ensureTimerIsRunning() {
+    if (_sleepTimer != null) return; // já está rodando
     if (_remainingSeconds == null || _remainingSeconds! <= 0) return;
-    _isPausedByUser = false;
+
     _sleepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds! > 0) {
         setState(() {
@@ -75,7 +62,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
         timer.cancel();
         widget.audioHandler.stop();
         _remainingSeconds = null;
-        _isPausedByUser = false;
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${widget.station.name} foi desligada pelo timer.')),
@@ -88,29 +74,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _sleepTimer?.cancel();
     _sleepTimer = null;
     _remainingSeconds = null;
-    _isPausedByUser = false;
     setState(() {});
   }
 
   void _startSleepTimer(int minutes) {
     _cancelSleepTimer();
     _remainingSeconds = minutes * 60;
-    _isPausedByUser = false;
-    _sleepTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingSeconds! > 0) {
-        setState(() {
-          _remainingSeconds = _remainingSeconds! - 1;
-        });
-      } else {
-        timer.cancel();
-        widget.audioHandler.stop();
-        _remainingSeconds = null;
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.station.name} foi desligada pelo timer.')),
-        );
-      }
-    });
+    _ensureTimerIsRunning();
   }
 
   void _showTimerDialog() {
@@ -133,7 +103,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             _buildTimerOption(30),
             _buildTimerOption(45),
             _buildTimerOption(60),
-            if (_sleepTimer != null)
+            if (_remainingSeconds != null)
               TextButton(
                 onPressed: () {
                   _cancelSleepTimer();
@@ -167,6 +137,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final min = (seconds ~/ 60).toString().padLeft(2, '0');
     final sec = (seconds % 60).toString().padLeft(2, '0');
     return '$min:$sec';
+  }
+
+  @override
+  void dispose() {
+    _sleepTimer?.cancel();
+    _playbackStateSubscription?.cancel();
+    super.dispose();
   }
 
   @override
