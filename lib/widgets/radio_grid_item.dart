@@ -42,8 +42,8 @@ class RadioGridItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: CachedNetworkImage(
                     imageUrl: station.artUrl,
-                    fit: BoxFit.contain,
-                    height: 120, // altura fixa para manter proporção
+                    fit: BoxFit.contain, // mantém proporção, não corta
+                    height: 120, // altura fixa para manter layout consistente
                     placeholder: (context, url) => Container(
                       color: Colors.grey[800]?.withOpacity(0.3),
                       child: const Center(
