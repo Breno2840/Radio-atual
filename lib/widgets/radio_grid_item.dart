@@ -21,7 +21,7 @@ class RadioGridItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(16), // canto arredondado do card
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -31,36 +31,33 @@ class RadioGridItem extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16), // garante que nada vaze
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Imagem com cantos arredondados internos
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12), // ← aqui: canto arredondado da imagem
-                  child: CachedNetworkImage(
-                    imageUrl: station.artUrl,
-                    fit: BoxFit.contain,
-                    height: 120,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[800]?.withOpacity(0.3),
-                      child: const Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-                          ),
+              // Imagem com cantos arredondados
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CachedNetworkImage(
+                  imageUrl: station.artUrl,
+                  fit: BoxFit.contain,
+                  height: 120,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[800]?.withOpacity(0.3),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
                         ),
                       ),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[900]?.withOpacity(0.4),
-                      child: const Icon(Icons.radio, size: 32, color: Colors.white54),
-                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[900]?.withOpacity(0.4),
+                    child: const Icon(Icons.radio, size: 32, color: Colors.white54),
                   ),
                 ),
               ),
