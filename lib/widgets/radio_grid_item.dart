@@ -20,98 +20,78 @@ class RadioGridItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white, // fundo branco puro
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              // Imagem de fundo
-              SizedBox.expand(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Imagem com padding interno
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
                 child: CachedNetworkImage(
                   imageUrl: station.artUrl,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
+                  height: 120, // altura fixa para manter proporção
                   placeholder: (context, url) => Container(
-                    color: Colors.grey[800]?.withOpacity(0.3),
+                    color: Colors.grey[200],
                     child: const Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
                         ),
                       ),
                     ),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[900]?.withOpacity(0.4),
-                    child: const Icon(
-                      Icons.radio,
-                      size: 28,
-                      color: Colors.white54,
-                    ),
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.radio, size: 32, color: Colors.grey),
                   ),
                 ),
               ),
-              // Escurecimento sutil para legibilidade
-              Container(
-                color: Colors.black.withOpacity(0.3),
-              ),
-              // Informações da rádio
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${station.name} ${station.frequency}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 4,
-                            color: Colors.black54,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+            ),
+            // Informações abaixo da imagem
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${station.name} ${station.frequency}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      station.location,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 2,
-                            color: Colors.black54,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    station.location,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
                     ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
