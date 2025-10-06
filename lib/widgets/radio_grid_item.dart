@@ -21,7 +21,7 @@ class RadioGridItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16), // canto arredondado do card
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -31,19 +31,19 @@ class RadioGridItem extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16), // garante que nada vaze
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Imagem com padding interno
+              // Imagem com cantos arredondados internos
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12), // ← aqui: canto arredondado da imagem
                   child: CachedNetworkImage(
                     imageUrl: station.artUrl,
-                    fit: BoxFit.contain, // mantém proporção, não corta
-                    height: 120, // altura fixa para manter layout consistente
+                    fit: BoxFit.contain,
+                    height: 120,
                     placeholder: (context, url) => Container(
                       color: Colors.grey[800]?.withOpacity(0.3),
                       child: const Center(
