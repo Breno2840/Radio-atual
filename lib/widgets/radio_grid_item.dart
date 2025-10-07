@@ -35,13 +35,13 @@ class RadioGridItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Imagem com cantos arredondados internos
+              // Imagem com cantos arredondados
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: CachedNetworkImage(
                   imageUrl: station.artUrl,
                   fit: BoxFit.contain,
-                  height: 120,
+                  height: 180, // altura maior para layout vertical
                   placeholder: (context, url) => Container(
                     color: Colors.grey[800]?.withOpacity(0.3),
                     child: const Center(
@@ -63,14 +63,14 @@ class RadioGridItem extends StatelessWidget {
               ),
               // Informações abaixo da imagem
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${station.name} ${station.frequency}',
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         shadows: [
@@ -84,11 +84,11 @@ class RadioGridItem extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       station.location,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 14,
                         color: Colors.white70,
                         shadows: [
                           Shadow(
