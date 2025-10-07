@@ -26,122 +26,128 @@ class MiniPlayer extends StatelessWidget {
     final String displaySubtitle = hasSongTitle ? station.name : station.location;
     final artUri = mediaItem.artUri;
 
-    const double borderRadiusValue = 16.0;
-
     return GestureDetector(
       onTap: onTap,
-      // CRUCIAL: O ClipRRect força o corte visual nas bordas
-      child: ClipRRect( 
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(borderRadiusValue),
-          topRight: Radius.circular(borderRadiusValue),
+      child: Container(
+        height: 70,
+        margin: const EdgeInsets.only(bottom: 0),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2C2C2E).withOpacity(0.95),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 10,
+              spreadRadius: 1,
+              offset: const Offset(0, -2),
+            )
+          ],
         ),
-        child: Container(
-          height: 70 + MediaQuery.of(context).padding.bottom,
-          // Padding interno para respirar as bordas
-          padding: EdgeInsets.fromLTRB(
-            16.0,
-            10.0,
-            16.0,
-            MediaQuery.of(context).padding.bottom,
-          ),
-          decoration: BoxDecoration(
-            color: const Color(0xFF2C2C2E).withOpacity(0.95),
-            // O BoxDecoration deve ter o Border Radius para o ClipRRect saber onde cortar.
-            borderRadius: const BorderRadius.only( 
-              topLeft: Radius.circular(borderRadiusValue),
-              topRight: Radius.circular(borderRadiusValue),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 10,
-                spreadRadius: 1,
-              )
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // 📀 Capa
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4.0), // Borda da capa interna
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: artUri != null
-                      ? CachedNetworkImage(
-                          imageUrl: artUri.toString(),
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                        )
-                      : const Icon(Icons.radio, color: Colors.white70, size: 40),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                // Logo da rádio
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    color: Colors.white,
+                    child: artUri != null
+                        ? CachedNetworkImage(
+                            imageUrl: artUri.toString(),
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.radio,
+                              color: Colors.grey[400],
+                              size: 30,
+                            ),
+                          )
+                        : Icon(
+                            Icons.radio,
+                            color: Colors.grey[400],
+                            size: 30,
+                          ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
+                const SizedBox(width: 12),
 
-              // 📋 Títulos
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      displayTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      displaySubtitle,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 12,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-
-              // ▶️ Botão Play/Pause
-              StreamBuilder<PlaybackState>(
-                stream: audioHandler.playbackState,
-                builder: (context, snapshot) {
-                  final playing = snapshot.data?.playing ?? false;
-                  final processing = snapshot.data?.processingState;
-
-                  if (processing == AudioProcessingState.loading ||
-                      processing == AudioProcessingState.buffering) {
-                    return const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
-                      child: SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(
+                // Informações da rádio
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayTitle,
+                        style: const TextStyle(
                           color: Colors.white,
-                          strokeWidth: 2.5,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    );
-                  }
+                      const SizedBox(height: 2),
+                      Text(
+                        displaySubtitle,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
 
-                  return IconButton(
-                    icon: Icon(
-                      playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 36,
-                    ),
-                    onPressed: playing ? audioHandler.pause : audioHandler.play,
-                  );
-                },
-              ),
-            ],
+                // Botão Play/Pause
+                StreamBuilder<PlaybackState>(
+                  stream: audioHandler.playbackState,
+                  builder: (context, snapshot) {
+                    final playing = snapshot.data?.playing ?? false;
+                    final processing = snapshot.data?.processingState;
+
+                    if (processing == AudioProcessingState.loading ||
+                        processing == AudioProcessingState.buffering) {
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return IconButton(
+                      icon: Icon(
+                        playing ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: playing ? audioHandler.pause : audioHandler.play,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
