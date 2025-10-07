@@ -50,17 +50,10 @@ class StationListScreen extends StatelessWidget {
           final usedHeight = padding.top + headerHeight + (showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 0);
           final availableHeight = screenHeight - usedHeight - padding.bottom;
 
-          // Garantir que availableHeight seja positivo
-          final safeAvailableHeight = availableHeight > 100 ? availableHeight : 100;
-
-          const crossAxisCount = 2;
-          const mainAxisSpacing = 12.0;
-          const crossAxisSpacing = 12.0;
-          const horizontalPadding = 12.0 * 2;
-
-          final cardWidth = (screenWidth - horizontalPadding - crossAxisSpacing) / crossAxisCount;
-          final cardHeight = cardWidth * 1.0; // proporção quadrada (ajustável)
-          final childAspectRatio = cardWidth / cardHeight;
+          // Forçar 3 linhas de cards (6 cards visíveis)
+          final cardHeight = 150 + 50; // altura da imagem + padding/info
+          final rowsToShow = 3;
+          final fixedHeight = rowsToShow * cardHeight;
 
           return Stack(
             children: [
@@ -92,10 +85,10 @@ class StationListScreen extends StatelessWidget {
                         bottom: showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 12.0,
                       ),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: crossAxisSpacing,
-                        mainAxisSpacing: mainAxisSpacing,
-                        childAspectRatio: childAspectRatio,
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1.0, // ← cartão quadrado
                       ),
                       itemCount: radioStations.length,
                       itemBuilder: (context, index) {
