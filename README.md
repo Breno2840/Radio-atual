@@ -1,4 +1,4 @@
-# Rádio Tropical
+# Rádio Online
 
 Aplicativo de rádio para Android com reprodução em background e notificações.
 
