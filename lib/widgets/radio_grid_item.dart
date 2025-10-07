@@ -36,7 +36,7 @@ class RadioGridItem extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(8),
                 child: Center(
                   child: CachedNetworkImage(
                     imageUrl: station.artUrl,
