@@ -35,7 +35,7 @@ class RadioGridItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Imagem com cantos arredondados
+              // Imagem com cantos arredondados internos
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: CachedNetworkImage(
