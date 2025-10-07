@@ -20,7 +20,6 @@ class RadioGridItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -41,7 +40,7 @@ class RadioGridItem extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: station.artUrl,
                   fit: BoxFit.contain,
-                  height: 180, // altura maior para layout vertical
+                  height: 140, // altura maior para layout grid
                   placeholder: (context, url) => Container(
                     color: Colors.grey[800]?.withOpacity(0.3),
                     child: const Center(
@@ -63,14 +62,14 @@ class RadioGridItem extends StatelessWidget {
               ),
               // Informações abaixo da imagem
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${station.name} ${station.frequency}',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         shadows: [
@@ -84,11 +83,11 @@ class RadioGridItem extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       station.location,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: Colors.white70,
                         shadows: [
                           Shadow(
