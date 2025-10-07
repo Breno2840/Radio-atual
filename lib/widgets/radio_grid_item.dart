@@ -34,13 +34,14 @@ class RadioGridItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Imagem com cantos arredondados
+              // Imagem quadrada com cantos arredondados
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: CachedNetworkImage(
                   imageUrl: station.artUrl,
                   fit: BoxFit.contain,
-                  height: 140, // altura maior para layout grid
+                  height: 150, // altura fixa para manter proporção quadrada
+                  width: double.infinity,
                   placeholder: (context, url) => Container(
                     color: Colors.grey[800]?.withOpacity(0.3),
                     child: const Center(
