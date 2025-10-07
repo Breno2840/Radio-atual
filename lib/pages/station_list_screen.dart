@@ -1,3 +1,5 @@
+// lib/pages/station_list_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import '../models/radio_station.dart';
@@ -18,7 +20,7 @@ class StationListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      bottom: false, // protege o topo; o mini player já lida com a parte inferior
+      bottom: false,
       child: StreamBuilder<MediaItem?>(
         stream: audioHandler.mediaItem,
         builder: (context, snapshot) {
@@ -41,26 +43,12 @@ class StationListScreen extends StatelessWidget {
           final screenWidth = MediaQuery.of(context).size.width;
           final padding = MediaQuery.of(context).padding;
 
-          // Altura do cabeçalho (texto + ícone + espaçamento)
-          final headerHeight = 28.0 + 20.0 + 30.0; // mantém, mas agora dentro de um layout seguro
+          // Altura do cabeçalho
+          final headerHeight = 28.0 + 20.0 + 30.0;
 
           // Altura usada por elementos fixos
           final usedHeight = padding.top + headerHeight + (showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 0);
           final availableHeight = screenHeight - usedHeight - padding.bottom;
-
-          // Garantir que availableHeight seja positivo
-          final safeAvailableHeight = availableHeight > 100 ? availableHeight : 100;
-
-          const crossAxisCount = 2;
-          const mainAxisSpacing = 16.0;
-          const crossAxisSpacing = 16.0;
-          const horizontalPadding = 16.0 * 2;
-
-          final cardWidth = (screenWidth - horizontalPadding - crossAxisSpacing) / crossAxisCount;
-          final cardHeight = cardWidth * 1.2; // proporção fixa (altura 20% maior que largura)
-
-          // Cálculo mais seguro: não força número de linhas
-          final childAspectRatio = cardWidth / cardHeight;
 
           return Stack(
             children: [
@@ -84,25 +72,22 @@ class StationListScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: GridView.builder(
+                    child: ListView.builder(
                       physics: const BouncingScrollPhysics(),
                       padding: EdgeInsets.only(
                         left: 16.0,
                         right: 16.0,
                         bottom: showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 16.0,
                       ),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: crossAxisSpacing,
-                        mainAxisSpacing: mainAxisSpacing,
-                        childAspectRatio: childAspectRatio,
-                      ),
                       itemCount: radioStations.length,
                       itemBuilder: (context, index) {
                         final station = radioStations[index];
-                        return RadioGridItem(
-                          station: station,
-                          onTap: () => audioHandler.playStation(station),
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: RadioGridItem(
+                            station: station,
+                            onTap: () => audioHandler.playStation(station),
+                          ),
                         );
                       },
                     ),
