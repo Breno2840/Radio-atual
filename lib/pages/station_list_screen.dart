@@ -50,6 +50,18 @@ class StationListScreen extends StatelessWidget {
           final usedHeight = padding.top + headerHeight + (showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 0);
           final availableHeight = screenHeight - usedHeight - padding.bottom;
 
+          // Garantir que availableHeight seja positivo
+          final safeAvailableHeight = availableHeight > 100 ? availableHeight : 100;
+
+          const crossAxisCount = 2;
+          const mainAxisSpacing = 12.0;
+          const crossAxisSpacing = 12.0;
+          const horizontalPadding = 12.0 * 2;
+
+          final cardWidth = (screenWidth - horizontalPadding - crossAxisSpacing) / crossAxisCount;
+          final cardHeight = cardWidth * 1.0; // proporção quadrada (ajustável)
+          final childAspectRatio = cardWidth / cardHeight;
+
           return Stack(
             children: [
               Column(
@@ -72,22 +84,25 @@ class StationListScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: ListView.builder(
+                    child: GridView.builder(
                       physics: const BouncingScrollPhysics(),
                       padding: EdgeInsets.only(
-                        left: 16.0,
-                        right: 16.0,
-                        bottom: showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 16.0,
+                        left: 12.0,
+                        right: 12.0,
+                        bottom: showMiniPlayer ? miniPlayerHeight + miniPlayerPadding : 12.0,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: crossAxisSpacing,
+                        mainAxisSpacing: mainAxisSpacing,
+                        childAspectRatio: childAspectRatio,
                       ),
                       itemCount: radioStations.length,
                       itemBuilder: (context, index) {
                         final station = radioStations[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: RadioGridItem(
-                            station: station,
-                            onTap: () => audioHandler.playStation(station),
-                          ),
+                        return RadioGridItem(
+                          station: station,
+                          onTap: () => audioHandler.playStation(station),
                         );
                       },
                     ),
