@@ -20,13 +20,24 @@ class RadioGridItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF2a2a3e).withOpacity(0.9),
+              const Color(0xFF1a1a2e).withOpacity(0.95),
+            ],
+          ),
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -42,7 +53,10 @@ class RadioGridItem extends StatelessWidget {
                     imageUrl: station.artUrl,
                     fit: BoxFit.contain,
                     placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900]?.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Center(
                         child: SizedBox(
                           width: 30,
@@ -50,18 +64,21 @@ class RadioGridItem extends StatelessWidget {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.grey[400]!,
+                              Colors.white.withOpacity(0.5),
                             ),
                           ),
                         ),
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[200],
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900]?.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Icon(
                         Icons.radio,
                         size: 50,
-                        color: Colors.grey[400],
+                        color: Colors.white.withOpacity(0.3),
                       ),
                     ),
                   ),
@@ -84,7 +101,7 @@ class RadioGridItem extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Colors.white,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -95,7 +112,7 @@ class RadioGridItem extends StatelessWidget {
                       station.location,
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey[600],
+                        color: Colors.white.withOpacity(0.6),
                         fontWeight: FontWeight.w400,
                       ),
                       maxLines: 1,
