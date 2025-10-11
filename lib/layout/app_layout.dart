@@ -28,8 +28,9 @@ class _AppLayoutState extends State<AppLayout> {
   final Color _defaultEndColor = const Color(0xFF000000);
   Uri? _lastArtUri;
 
-  // Cor fixa para a lista (vermelho escuro como na imagem)
-  final Color _listBackgroundColor = const Color(0xFF5C1F1F);
+  // Cores do gradiente escuro para a lista
+  final Color _listStartColor = const Color(0xFF1a1a2e);
+  final Color _listEndColor = const Color(0xFF0f0f1e);
 
   bool _showingPlayer = true;
 
@@ -98,16 +99,13 @@ class _AppLayoutState extends State<AppLayout> {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
-            // Se estiver na lista, usa cor sólida vermelho escuro
-            // Se estiver no player, usa gradiente dinâmico
-            gradient: _showingPlayer
-                ? LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [_startColor, _endColor],
-                  )
-                : null,
-            color: _showingPlayer ? null : _listBackgroundColor,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: _showingPlayer 
+                  ? [_startColor, _endColor]
+                  : [_listStartColor, _listEndColor],
+            ),
           ),
           child: Scaffold(
             backgroundColor: Colors.transparent,
