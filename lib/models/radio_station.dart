@@ -21,6 +21,7 @@ class RadioStation {
 
   // Chave para SharedPreferences
   static const String _lastStationKey = 'last_radio_station';
+  static const String _stationsCacheKey = 'cached_radio_stations';
 
   // Converte a instância em um Map<String, dynamic>
   Map<String, dynamic> toJson() => {
@@ -51,13 +52,49 @@ class RadioStation {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonMap = json.decode(response.body);
         final List<dynamic> jsonList = jsonMap['radios'] as List<dynamic>;
-        return jsonList.map((json) => RadioStation.fromJson(json)).toList();
+        final List<RadioStation> stations = jsonList.map((json) => RadioStation.fromJson(json)).toList();
+
+        // Salva as estações localmente
+        await _saveStationsToCache(stations);
+
+        return stations;
       } else {
         throw Exception('Falha ao carregar estações: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Erro ao buscar estações: $e');
+      // Se falhar, tenta carregar do cache
+      final cached = await _loadStationsFromCache();
+      if (cached.isNotEmpty) {
+        return cached;
+      } else {
+        throw Exception('Erro ao buscar estações e sem cache: $e');
+      }
     }
+  }
+
+  // Salva estações no cache local
+  static Future<void> _saveStationsToCache(List<RadioStation> stations) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = stations.map((station) => station.toJson()).toList();
+    await prefs.setString(_stationsCacheKey, json.encode(jsonList));
+  }
+
+  // Carrega estações do cache local
+  static Future<List<RadioStation>> _loadStationsFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_stationsCacheKey);
+
+    if (jsonString != null) {
+      try {
+        final List<dynamic> jsonList = json.decode(jsonString);
+        return jsonList.map((json) => RadioStation.fromJson(json)).toList();
+      } catch (e) {
+        // Se der erro ao decodificar, limpa o cache
+        await prefs.remove(_stationsCacheKey);
+        return [];
+      }
+    }
+    return [];
   }
 
   // Salva a estação de rádio atual no SharedPreferences
