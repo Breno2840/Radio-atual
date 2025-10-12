@@ -122,9 +122,29 @@ class _AppLayoutState extends State<AppLayout> {
             onShowList: () => _toggleScreen(false),
           );
         } else {
-          currentPage = StationListScreen(
-            audioHandler: widget.audioHandler,
-            onShowPlayer: () => _toggleScreen(true),
+          currentPage = Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => _toggleScreen(true), // Agora o botão volta ao player
+              ),
+              title: const Text(
+                'Estações de Rádio',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              centerTitle: false,
+            ),
+            body: StationListScreen(
+              audioHandler: widget.audioHandler,
+              onShowPlayer: () => _toggleScreen(true),
+            ),
           );
         }
 
@@ -139,10 +159,7 @@ class _AppLayoutState extends State<AppLayout> {
                   : [_listStartColor, _listEndColor],
             ),
           ),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: currentPage,
-          ),
+          child: currentPage,
         );
       },
     );
