@@ -50,8 +50,7 @@ class RadioStation {
     try {
       final response = await http.get(Uri.parse('https://late-tree-7ba3.mandy2a2839.workers.dev/'));
       if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonMap = json.decode(response.body);
-        final List<dynamic> jsonList = jsonMap['radios'] as List<dynamic>;
+        final List<dynamic> jsonList = json.decode(response.body) as List<dynamic>;
         final List<RadioStation> stations = jsonList.map((json) => RadioStation.fromJson(json)).toList();
 
         // Salva as estações localmente
