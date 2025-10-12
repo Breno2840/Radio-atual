@@ -33,6 +33,31 @@ class _AppLayoutState extends State<AppLayout> {
   final Color _listEndColor = const Color(0xFF0f0f1e);
 
   bool _showingPlayer = true;
+  List<RadioStation> _stations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStations();
+  }
+
+  Future<void> _loadStations() async {
+    try {
+      final stations = await RadioStation.fetchStations();
+      if (mounted) {
+        setState(() {
+          _stations = stations;
+        });
+      }
+    } catch (e) {
+      // Em caso de erro, você pode exibir uma mensagem ou manter uma lista vazia
+      if (mounted) {
+        setState(() {
+          _stations = [];
+        });
+      }
+    }
+  }
 
   void _toggleScreen(bool showPlayer) {
     if (_showingPlayer != showPlayer) {
@@ -71,22 +96,29 @@ class _AppLayoutState extends State<AppLayout> {
         }
 
         RadioStation? playingStation;
-        if (mediaItem != null) {
-          playingStation = radioStations.firstWhere(
+        if (mediaItem != null && _stations.isNotEmpty) {
+          playingStation = _stations.firstWhere(
             (station) => station.streamUrl == mediaItem.id,
-            orElse: () => radioStations.first,
+            orElse: () => _stations.first,
           );
-        } else {
-          playingStation = radioStations.first;
+        } else if (_stations.isNotEmpty) {
+          playingStation = _stations.first;
         }
 
         Widget currentPage;
         
         if (_showingPlayer) {
+          if (_stations.isEmpty) {
+            // Caso as estações ainda estejam carregando ou falharam
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
           currentPage = PlayerScreen(
             audioHandler: widget.audioHandler,
             mediaItem: mediaItem,
             station: playingStation!,
+            stations: _stations,
             onShowList: () => _toggleScreen(false),
           );
         } else {
