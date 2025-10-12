@@ -1,5 +1,3 @@
-// lib/pages/player_screen.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
