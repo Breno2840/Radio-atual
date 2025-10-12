@@ -194,6 +194,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 color: Colors.white70,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+                decoration: TextDecoration.none, // ← Correção aplicada
               ),
             ),
           const SizedBox(height: 12),
