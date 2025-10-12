@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // Importe para usar o debugPrint
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,29 +33,41 @@ class RadioStation {
         'artUrl': artUrl,
       };
 
-  // Cria uma instância a partir de um Map<String, dynamic>
+  // --- MÉTODO fromJson ATUALIZADO E MAIS SEGURO ---
+  // Evita erros se algum campo for nulo ou de tipo diferente no JSON
   factory RadioStation.fromJson(Map<String, dynamic> json) {
     return RadioStation(
-      name: json['name'] as String,
-      frequency: json['frequency'] as String,
-      band: json['band'] as String,
-      location: json['location'] as String,
-      streamUrl: json['streamUrl'] as String,
-      artUrl: json['artUrl'] as String,
+      name: json['name']?.toString() ?? 'Rádio sem nome',
+      frequency: json['frequency']?.toString() ?? '',
+      band: json['band']?.toString() ?? 'FM',
+      location: json['location']?.toString() ?? 'Local não informado',
+      streamUrl: json['streamUrl']?.toString() ?? '',
+      artUrl: json['artUrl']?.toString() ?? '',
     );
   }
 
-  // Método para carregar estações do JSON online
+  // --- MÉTODO fetchStations ATUALIZADO COM LOG DE ERRO DETALHADO ---
   static Future<List<RadioStation>> fetchStations() async {
     try {
       final response = await http.get(Uri.parse('https://late-tree-7ba3.mandy2a2839.workers.dev/'));
+      
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
         return jsonList.map((json) => RadioStation.fromJson(json)).toList();
       } else {
+        // Log para erros de resposta do servidor (404, 500, etc.)
+        debugPrint('--- ERRO DE REDE AO BUSCAR ESTAÇÕES ---');
+        debugPrint('STATUS CODE: ${response.statusCode}');
+        debugPrint('RESPOSTA DO SERVIDOR: ${response.body}');
+        debugPrint('---------------------------------------');
         throw Exception('Falha ao carregar estações: ${response.statusCode}');
       }
-    } catch (e) {
+    } catch (e, stacktrace) {
+      // Log para qualquer outro erro (parsing do JSON, sem internet, etc.)
+      debugPrint('--- ERRO DETALHADO AO PROCESSAR ESTAÇÕES ---');
+      debugPrint('ERRO: $e');
+      debugPrint('ONDE ACONTECEU (STACKTRACE): $stacktrace');
+      debugPrint('--------------------------------------------');
       throw Exception('Erro ao buscar estações: $e');
     }
   }
