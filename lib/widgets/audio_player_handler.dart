@@ -18,7 +18,6 @@ MediaItem createMediaItem(RadioStation station) {
 
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
-  final List<RadioStation> _stations = radioStations;
 
   AudioPlayerHandler() { _init(); }
   
@@ -63,22 +62,22 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     await super.stop();
   }
 
-  // === NOVOS MÉTODOS ===
-  int? _getCurrentIndex(String? streamUrl) {
+  // === MÉTODOS ATUALIZADOS ===
+  int? _getCurrentIndex(String? streamUrl, List<RadioStation> stations) {
     if (streamUrl == null) return null;
-    return _stations.indexWhere((station) => station.streamUrl.trim() == streamUrl.trim());
+    return stations.indexWhere((station) => station.streamUrl.trim() == streamUrl.trim());
   }
 
-  Future<void> playNext() async {
-    final currentIndex = _getCurrentIndex(mediaItem.value?.id);
-    if (currentIndex == null || currentIndex >= _stations.length - 1) return;
-    await playStation(_stations[currentIndex + 1]);
+  Future<void> playNext(List<RadioStation> stations) async {
+    final currentIndex = _getCurrentIndex(mediaItem.value?.id, stations);
+    if (currentIndex == null || currentIndex >= stations.length - 1) return;
+    await playStation(stations[currentIndex + 1]);
   }
 
-  Future<void> playPrevious() async {
-    final currentIndex = _getCurrentIndex(mediaItem.value?.id);
+  Future<void> playPrevious(List<RadioStation> stations) async {
+    final currentIndex = _getCurrentIndex(mediaItem.value?.id, stations);
     if (currentIndex == null || currentIndex <= 0) return;
-    await playStation(_stations[currentIndex - 1]);
+    await playStation(stations[currentIndex - 1]);
   }
   // ====================
 
