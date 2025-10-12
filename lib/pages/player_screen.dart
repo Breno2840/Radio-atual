@@ -12,6 +12,7 @@ class PlayerScreen extends StatefulWidget {
   final AudioPlayerHandler audioHandler;
   final MediaItem? mediaItem;
   final RadioStation station;
+  final List<RadioStation> stations; // Nova propriedade
   final VoidCallback onShowList;
 
   const PlayerScreen({
@@ -19,6 +20,7 @@ class PlayerScreen extends StatefulWidget {
     required this.audioHandler,
     required this.mediaItem,
     required this.station,
+    required this.stations, // Adicionado
     required this.onShowList,
   });
 
@@ -295,7 +297,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     icon: const Icon(Icons.skip_previous_rounded),
                                     iconSize: buttonHeight * 0.6,
                                     color: Colors.white,
-                                    onPressed: widget.audioHandler.playPrevious,
+                                    onPressed: () => widget.audioHandler.playPrevious(widget.stations),
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.pause_rounded),
@@ -307,7 +309,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     icon: const Icon(Icons.skip_next_rounded),
                                     iconSize: buttonHeight * 0.6,
                                     color: Colors.white,
-                                    onPressed: widget.audioHandler.playNext,
+                                    onPressed: () => widget.audioHandler.playNext(widget.stations),
                                   ),
                                 ],
                               )
