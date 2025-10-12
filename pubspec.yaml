@@ -29,8 +29,9 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
-  # Pacote para requisições HTTP
+  # Pacotes para requisições HTTP e coleções
   http: ^1.1.0
+  collection: ^1.18.0
 
 dev_dependencies:
   flutter_test:
