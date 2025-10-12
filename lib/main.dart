@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:collection/collection.dart'; // ✅ Import adicionado
+import 'package:collection/collection.dart';
 
 // Imports dos seus arquivos de código
 import 'models/radio_station.dart';
@@ -34,23 +34,13 @@ Future<void> main() async {
   // LÓGICA DE CARREGAMENTO DA ÚLTIMA RÁDIO
   RadioStation? lastStation = await RadioStation.loadLastStation();
 
-  // Busca as estações online
+  // Busca as estações online com fallback
   List<RadioStation> stations = [];
   try {
     stations = await RadioStation.fetchStations();
   } catch (e) {
-    // Caso falhe, tenta usar uma estação padrão ou a última salva
-    if (lastStation == null) {
-      // Aqui você pode definir uma estação padrão hardcoded temporariamente
-      lastStation = const RadioStation(
-        name: 'Rádio Padrão',
-        frequency: '00.0',
-        band: 'FM',
-        location: 'Localidade Padrão',
-        streamUrl: 'https://exemplo.com/radio.mp3',
-        artUrl: 'https://exemplo.com/arte.jpg',
-      );
-    }
+    print("Erro ao carregar estações online: $e");
+    // Não encerra o app, apenas usa uma estação padrão
   }
 
   final initialStation = lastStation ?? stations.firstOrNull ?? const RadioStation(
@@ -62,20 +52,25 @@ Future<void> main() async {
     artUrl: 'https://exemplo.com/arte.jpg',
   );
 
-  // Inicializa o AudioService
-  _audioHandler = await AudioService.init(
-    builder: () => AudioPlayerHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.calculadora.my.channel.audio',
-      androidNotificationChannelName: 'Reprodução de Áudio',
-      androidNotificationOngoing: true,
-      androidStopForegroundOnPause: true,
-    ),
-  ) as AudioPlayerHandler; // Mantém o cast para o tipo concreto
+  try {
+    // Inicializa o AudioService
+    _audioHandler = await AudioService.init(
+      builder: () => AudioPlayerHandler(),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.calculadora.my.channel.audio',
+        androidNotificationChannelName: 'Reprodução de Áudio',
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: true,
+      ),
+    ) as AudioPlayerHandler; // Mantém o cast para o tipo concreto
 
-  // Carrega os metadados usando o NOVO MÉTODO loadStation (Dentro da classe)
-  await _audioHandler.loadStation(initialStation); 
-  
+    // Carrega os metadados usando o NOVO MÉTODO loadStation (Dentro da classe)
+    await _audioHandler.loadStation(initialStation);
+  } catch (e) {
+    print("Erro ao inicializar AudioService: $e");
+    // Aqui você pode adicionar fallbacks ou mensagens de erro
+  }
+
   runApp(MyApp(audioHandler: _audioHandler));
 }
 
