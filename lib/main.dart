@@ -1,5 +1,3 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
@@ -34,8 +32,11 @@ Future<void> main() async {
 
   // LÓGICA DE CARREGAMENTO DA ÚLTIMA RÁDIO
   RadioStation? lastStation = await RadioStation.loadLastStation();
-  final initialStation = lastStation ?? radioStations.first;
-  
+
+  // Busca as estações online
+  List<RadioStation> stations = await RadioStation.fetchStations();
+  final initialStation = lastStation ?? stations.first;
+
   // Inicializa o AudioService
   _audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
