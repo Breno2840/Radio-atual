@@ -86,12 +86,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void _showTimerDialog() {
     final isPlaying = widget.audioHandler.playbackState.value?.playing ?? false;
     if (!isPlaying) {
+      // ✅ Sempre mostra o SnackBar, mesmo que o timer já tenha sido usado antes
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Toque em play primeiro para ativar o timer.')),
+        const SnackBar(content: Text('Toque em play primeiro para ativar o timer.')),
       );
       return;
     }
 
+    // Se estiver tocando, mostra o diálogo normalmente
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
