@@ -17,18 +17,87 @@ class StationListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<List<RadioStation>>(
+      future: RadioStation.fetchStations(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  // Aqui você pode adicionar navegação se necessário
+                },
+              ),
+              title: const Text(
+                'Estações de Rádio',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              centerTitle: false,
+            ),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  // Aqui você pode adicionar navegação se necessário
+                },
+              ),
+              title: const Text(
+                'Estações de Rádio',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              centerTitle: false,
+            ),
+            body: Center(
+              child: Text(
+                'Erro ao carregar estações: ${snapshot.error}',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          );
+        }
+
+        final stations = snapshot.data ?? [];
+        return _buildBody(context, stations);
+      },
+    );
+  }
+
+  Widget _buildBody(BuildContext context, List<RadioStation> stations) {
     return StreamBuilder<MediaItem?>(
       stream: audioHandler.mediaItem,
-      builder: (context, snapshot) {
-        final mediaItem = snapshot.data;
+      builder: (context, mediaSnapshot) {
+        final mediaItem = mediaSnapshot.data;
         RadioStation? playingStation;
         bool showMiniPlayer = false;
 
         if (mediaItem != null) {
           showMiniPlayer = true;
-          playingStation = radioStations.firstWhere(
+          playingStation = stations.firstWhere(
             (station) => station.streamUrl == mediaItem.id,
-            orElse: () => radioStations.first,
+            orElse: () => stations.first,
           );
         }
 
@@ -70,9 +139,9 @@ class StationListScreen extends StatelessWidget {
                     mainAxisSpacing: 16,
                     childAspectRatio: 0.85,
                   ),
-                  itemCount: radioStations.length,
+                  itemCount: stations.length,
                   itemBuilder: (context, index) {
-                    final station = radioStations[index];
+                    final station = stations[index];
                     final isPlaying = mediaItem != null && 
                                      station.streamUrl == mediaItem.id;
                     
