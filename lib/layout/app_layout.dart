@@ -83,85 +83,95 @@ class _AppLayoutState extends State<AppLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<MediaItem?>(
-      stream: widget.audioHandler.mediaItem,
-      builder: (context, snapshot) {
-        final mediaItem = snapshot.data;
+    return WillPopScope(
+      onWillPop: () async {
+        if (!_showingPlayer) {
+          // Se estiver na tela de lista, volta para o player
+          _toggleScreen(true);
+          return false; // Não sai do app
+        }
+        return true; // Se estiver no player, permite sair
+      },
+      child: StreamBuilder<MediaItem?>(
+        stream: widget.audioHandler.mediaItem,
+        builder: (context, snapshot) {
+          final mediaItem = snapshot.data;
 
-        if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
-          _lastArtUri = mediaItem.artUri;
-          if (mediaItem.artUri != null) {
-            _updateBackgroundColors(mediaItem.artUri!);
+          if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
+            _lastArtUri = mediaItem.artUri;
+            if (mediaItem.artUri != null) {
+              _updateBackgroundColors(mediaItem.artUri!);
+            }
           }
-        }
 
-        RadioStation? playingStation;
-        if (mediaItem != null && _stations.isNotEmpty) {
-          playingStation = _stations.firstWhere(
-            (station) => station.streamUrl == mediaItem.id,
-            orElse: () => _stations.first,
-          );
-        } else if (_stations.isNotEmpty) {
-          playingStation = _stations.first;
-        }
+          RadioStation? playingStation;
+          if (mediaItem != null && _stations.isNotEmpty) {
+            playingStation = _stations.firstWhere(
+              (station) => station.streamUrl == mediaItem.id,
+              orElse: () => _stations.first,
+            );
+          } else if (_stations.isNotEmpty) {
+            playingStation = _stations.first;
+          }
 
-        Widget currentPage;
-        
-        if (_showingPlayer) {
-          if (_stations.isEmpty) {
-            // Caso as estações ainda estejam carregando ou falharam
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+          Widget currentPage;
+          
+          if (_showingPlayer) {
+            if (_stations.isEmpty) {
+              // Caso as estações ainda estejam carregando ou falharam
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            currentPage = PlayerScreen(
+              audioHandler: widget.audioHandler,
+              mediaItem: mediaItem,
+              station: playingStation!,
+              stations: _stations,
+              onShowList: () => _toggleScreen(false),
+            );
+          } else {
+            currentPage = Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => _toggleScreen(true), // Agora o botão volta ao player
+                ),
+                title: const Text(
+                  'Estações de Rádio',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                centerTitle: false,
+              ),
+              body: StationListScreen(
+                audioHandler: widget.audioHandler,
+                onShowPlayer: () => _toggleScreen(true),
+              ),
             );
           }
-          currentPage = PlayerScreen(
-            audioHandler: widget.audioHandler,
-            mediaItem: mediaItem,
-            station: playingStation!,
-            stations: _stations,
-            onShowList: () => _toggleScreen(false),
-          );
-        } else {
-          currentPage = Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => _toggleScreen(true), // Agora o botão volta ao player
-              ),
-              title: const Text(
-                'Estações de Rádio',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              centerTitle: false,
-            ),
-            body: StationListScreen(
-              audioHandler: widget.audioHandler,
-              onShowPlayer: () => _toggleScreen(true),
-            ),
-          );
-        }
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: _showingPlayer 
-                  ? [_startColor, _endColor]
-                  : [_listStartColor, _listEndColor],
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: _showingPlayer 
+                    ? [_startColor, _endColor]
+                    : [_listStartColor, _listEndColor],
+              ),
             ),
-          ),
-          child: currentPage,
-        );
-      },
+            child: currentPage,
+          );
+        },
+      ),
     );
   }
 }
