@@ -10,33 +10,35 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Pacotes para áudio em segundo plano
-  audio_service: ^0.18.12
-  just_audio: ^0.9.36
-  audio_session: ^0.1.18
+  # Pacotes para áudio em segundo plano (versões atualizadas)
+  audio_service: ^0.18.18
+  just_audio: ^0.10.4
+  audio_session: ^0.2.2
 
   # Persistência de dados simples para a última rádio ouvida
   shared_preferences: ^2.2.3
 
-  # Pacotes para permissões e info
-  permission_handler: ^11.3.1
-  device_info_plus: ^10.1.0
+  # Pacotes para permissões e info (versões atualizadas)
+  permission_handler: ^12.0.1
+  device_info_plus: ^12.1.0
 
-  # Pacotes para a interface
+  # Pacotes para a interface (versões atualizadas)
   cached_network_image: ^3.3.1 
   glassmorphism: ^3.0.0
-  palette_generator: ^0.3.3+3
+  palette_generator: ^0.3.3+7 # Descontinuado, mas esta é a última versão
 
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.8
 
-  # Pacotes para requisições HTTP e coleções
-  http: ^1.1.0
-  collection: ^1.18.0
+  # Pacotes para requisições HTTP e coleções (versões atualizadas)
+  http: ^1.5.0
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  
+  # Lints (versão atualizada)
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
