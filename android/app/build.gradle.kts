@@ -3,7 +3,7 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")  // <= SEM VERSÃO AQUI (vem do settings.gradle.kts)
+    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -85,7 +85,10 @@ flutter {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")  // <= ATUALIZADO
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
+    
+    // LINHA ADICIONADA: Dependência necessária para o Play Core que estava causando o erro no build.
+    implementation("com.google.android.play:core:1.10.3")
 }
