@@ -70,15 +70,18 @@ class _StationListScreenState extends State<StationListScreen> {
       builder: (context, mediaSnapshot) {
         final mediaItem = mediaSnapshot.data;
         RadioStation? playingStation;
-        bool showMiniPlayer = false;
 
         if (mediaItem != null) {
-          showMiniPlayer = true;
-          playingStation = stations.firstWhere(
-            (station) => station.streamUrl == mediaItem.id,
-            orElse: () => stations.first,
-          );
+          try {
+            playingStation = stations.firstWhere(
+              (station) => station.streamUrl == mediaItem.id,
+            );
+          } catch (e) {
+            playingStation = null;
+          }
         }
+
+        final showMiniPlayer = mediaItem != null && playingStation != null;
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -86,13 +89,13 @@ class _StationListScreenState extends State<StationListScreen> {
             children: [
               Expanded(
                 child: GridView.builder(
-                  controller: _scrollController, // ← Mantém o scroll
+                  controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.only(
                     left: 16.0,
                     right: 16.0,
                     top: 16.0,
-                    bottom: showMiniPlayer ? 90.0 : 16.0,
+                    bottom: showMiniPlayer ? 100.0 : 16.0,
                   ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -109,19 +112,37 @@ class _StationListScreenState extends State<StationListScreen> {
                     return RadioGridItem(
                       station: station,
                       isPlaying: isPlaying,
-                      onTap: () => widget.audioHandler.playStation(station),
+                      onTap: () async {
+                        try {
+                          await widget.audioHandler.playStation(station);
+                          print('✅ Tocando: ${station.name}');
+                        } catch (e) {
+                          print('❌ Erro ao tocar: $e');
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erro ao tocar ${station.name}'),
+                                backgroundColor: Colors.red,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        }
+                      },
                     );
                   },
                 ),
               ),
             ],
           ),
-          bottomNavigationBar: showMiniPlayer && mediaItem != null && playingStation != null
-              ? MiniPlayer(
-                  audioHandler: widget.audioHandler,
-                  mediaItem: mediaItem,
-                  station: playingStation!,
-                  onTap: widget.onShowPlayer,
+          bottomNavigationBar: showMiniPlayer
+              ? SafeArea(
+                  child: MiniPlayer(
+                    audioHandler: widget.audioHandler,
+                    mediaItem: mediaItem!,
+                    station: playingStation!,
+                    onTap: widget.onShowPlayer,
+                  ),
                 )
               : null,
         );
