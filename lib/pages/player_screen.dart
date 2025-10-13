@@ -10,7 +10,7 @@ class PlayerScreen extends StatefulWidget {
   final AudioPlayerHandler audioHandler;
   final MediaItem? mediaItem;
   final RadioStation station;
-  final List<RadioStation> stations; // Nova propriedade
+  final List<RadioStation> stations;
   final VoidCallback onShowList;
 
   const PlayerScreen({
@@ -18,7 +18,7 @@ class PlayerScreen extends StatefulWidget {
     required this.audioHandler,
     required this.mediaItem,
     required this.station,
-    required this.stations, // Adicionado
+    required this.stations,
     required this.onShowList,
   });
 
@@ -32,8 +32,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   void initState() {
     super.initState();
+    // Apenas para debug, pode ser removido
     _playbackStateSubscription = widget.audioHandler.playbackState.listen((state) {
-      final isPlaying = state.playing;
+      // final isPlaying = state.playing;
     });
   }
 
@@ -67,8 +68,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Timer removido
-                const SizedBox(width: 48), // Espaço para manter alinhamento
+                const SizedBox(width: 48),
                 IconButton(
                   icon: const Icon(Icons.apps_rounded, color: Colors.white, size: 30),
                   onPressed: widget.onShowList,
@@ -81,6 +81,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Arte da capa
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
@@ -107,6 +108,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Títulos
                 Text(
                   displayTitle,
                   style: const TextStyle(
@@ -129,6 +131,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Controles de Player
                 StreamBuilder<PlaybackState>(
                   stream: widget.audioHandler.playbackState,
                   builder: (context, snapshot) {
@@ -154,49 +157,37 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         linearGradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.2)
-                          ],
+                          colors: [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.2)],
                         ),
                         borderGradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.5),
-                            Colors.white.withOpacity(0.5)
+                          colors: [Colors.white.withOpacity(0.5), Colors.white.withOpacity(0.5)],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.skip_previous_rounded),
+                              iconSize: buttonHeight * 0.6,
+                              color: Colors.white,
+                              onPressed: () => widget.audioHandler.playPrevious(widget.stations),
+                            ),
+                            IconButton(
+                              // CORREÇÃO: O botão de play/pause agora usa os métodos corretos.
+                              icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                              iconSize: buttonHeight * 0.6,
+                              color: Colors.white,
+                              onPressed: playing ? widget.audioHandler.pause : widget.audioHandler.play,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.skip_next_rounded),
+                              iconSize: buttonHeight * 0.6,
+                              color: Colors.white,
+                              onPressed: () => widget.audioHandler.playNext(widget.stations),
+                            ),
                           ],
                         ),
-                        child: playing
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.skip_previous_rounded),
-                                    iconSize: buttonHeight * 0.6,
-                                    color: Colors.white,
-                                    onPressed: () => widget.audioHandler.playPrevious(widget.stations),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.pause_rounded),
-                                    iconSize: buttonHeight * 0.6,
-                                    color: Colors.white,
-                                    onPressed: widget.audioHandler.pause,
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.skip_next_rounded),
-                                    iconSize: buttonHeight * 0.6,
-                                    color: Colors.white,
-                                    onPressed: () => widget.audioHandler.playNext(widget.stations),
-                                  ),
-                                ],
-                              )
-                            : IconButton(
-                                icon: const Icon(Icons.play_arrow_rounded),
-                                iconSize: buttonHeight * 0.6,
-                                color: Colors.white,
-                                onPressed: () => widget.audioHandler.playStation(widget.station),
-                              ),
                       );
                     }
                   },
