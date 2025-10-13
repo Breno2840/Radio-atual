@@ -34,32 +34,40 @@ class _AppLayoutState extends State<AppLayout> {
 
   bool _showingPlayer = true;
   List<RadioStation> _stations = [];
+  bool _isLoadingStations = true;
 
   @override
   void initState() {
     super.initState();
+    print('🎨 AppLayout: initState');
     _loadStations();
   }
 
   Future<void> _loadStations() async {
     try {
+      print('📡 AppLayout: Carregando estações...');
       final stations = await RadioStation.fetchStations();
+      print('✅ AppLayout: ${stations.length} estações carregadas');
+      
       if (mounted) {
         setState(() {
           _stations = stations;
+          _isLoadingStations = false;
         });
       }
     } catch (e) {
-      // Em caso de erro, você pode exibir uma mensagem ou manter uma lista vazia
+      print('❌ AppLayout: Erro ao carregar estações: $e');
       if (mounted) {
         setState(() {
           _stations = [];
+          _isLoadingStations = false;
         });
       }
     }
   }
 
   void _toggleScreen(bool showPlayer) {
+    print('🔄 AppLayout: Alternando para ${showPlayer ? "Player" : "Lista"}');
     if (_showingPlayer != showPlayer) {
       setState(() {
         _showingPlayer = showPlayer;
@@ -68,35 +76,60 @@ class _AppLayoutState extends State<AppLayout> {
   }
 
   Future<void> _updateBackgroundColors(Uri artUri) async {
-    final provider = CachedNetworkImageProvider(artUri.toString());
-    final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
+    try {
+      print('🎨 AppLayout: Atualizando cores do fundo...');
+      final provider = CachedNetworkImageProvider(artUri.toString());
+      final paletteGenerator = await PaletteGenerator.fromImageProvider(provider);
 
-    if (mounted && artUri == _lastArtUri) {
-      setState(() {
-        _startColor = paletteGenerator.dominantColor?.color ?? _defaultStartColor;
-        _endColor = paletteGenerator.darkMutedColor?.color ??
-            paletteGenerator.darkVibrantColor?.color ??
-            _defaultEndColor;
-      });
+      if (mounted && artUri == _lastArtUri) {
+        setState(() {
+          _startColor = paletteGenerator.dominantColor?.color ?? _defaultStartColor;
+          _endColor = paletteGenerator.darkMutedColor?.color ??
+              paletteGenerator.darkVibrantColor?.color ??
+              _defaultEndColor;
+        });
+        print('✅ AppLayout: Cores atualizadas');
+      }
+    } catch (e) {
+      print('⚠️ AppLayout: Erro ao gerar paleta: $e');
+    }
+  }
+
+  RadioStation? _findPlayingStation(MediaItem? mediaItem) {
+    if (mediaItem == null || _stations.isEmpty) {
+      return null;
+    }
+
+    try {
+      return _stations.firstWhere(
+        (station) => station.streamUrl.trim() == mediaItem.id.trim(),
+      );
+    } catch (e) {
+      print('⚠️ AppLayout: Estação não encontrada para: ${mediaItem.id}');
+      return null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('🏗️ AppLayout: build (showingPlayer: $_showingPlayer)');
+    
     return WillPopScope(
       onWillPop: () async {
         if (!_showingPlayer) {
-          // Se estiver na tela de lista, volta para o player
+          print('⬅️ AppLayout: Botão voltar - retornando ao player');
           _toggleScreen(true);
-          return false; // Não sai do app
+          return false;
         }
-        return true; // Se estiver no player, permite sair
+        print('⬅️ AppLayout: Botão voltar - saindo do app');
+        return true;
       },
       child: StreamBuilder<MediaItem?>(
         stream: widget.audioHandler.mediaItem,
         builder: (context, snapshot) {
           final mediaItem = snapshot.data;
 
+          // Atualiza cores quando muda a arte
           if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
             _lastArtUri = mediaItem.artUri;
             if (mediaItem.artUri != null) {
@@ -104,29 +137,102 @@ class _AppLayoutState extends State<AppLayout> {
             }
           }
 
-          RadioStation? playingStation;
-          if (mediaItem != null && _stations.isNotEmpty) {
-            playingStation = _stations.firstWhere(
-              (station) => station.streamUrl == mediaItem.id,
-              orElse: () => _stations.first,
+          // Busca a estação que está tocando
+          final playingStation = _findPlayingStation(mediaItem);
+
+          // Mostra loading enquanto carrega estações
+          if (_isLoadingStations) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [_listStartColor, _listEndColor],
+                ),
+              ),
+              child: const Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Colors.white),
+                      SizedBox(height: 20),
+                      Text(
+                        'Carregando estações...',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             );
-          } else if (_stations.isNotEmpty) {
-            playingStation = _stations.first;
           }
 
+          // Se não tem estações, mostra erro
+          if (_stations.isEmpty) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [_listStartColor, _listEndColor],
+                ),
+              ),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Erro ao carregar estações',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Verifique sua conexão com a internet',
+                          style: TextStyle(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _isLoadingStations = true;
+                            });
+                            _loadStations();
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tentar Novamente'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // Define a página atual
           Widget currentPage;
           
           if (_showingPlayer) {
-            if (_stations.isEmpty) {
-              // Caso as estações ainda estejam carregando ou falharam
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
+            // Se não tem MediaItem, usa a primeira estação
+            final stationToShow = playingStation ?? _stations.first;
+            
             currentPage = PlayerScreen(
               audioHandler: widget.audioHandler,
               mediaItem: mediaItem,
-              station: playingStation!,
+              station: stationToShow,
               stations: _stations,
               onShowList: () => _toggleScreen(false),
             );
@@ -138,7 +244,7 @@ class _AppLayoutState extends State<AppLayout> {
                 elevation: 0,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => _toggleScreen(true), // Agora o botão volta ao player
+                  onPressed: () => _toggleScreen(true),
                 ),
                 title: const Text(
                   'Estações de Rádio',
