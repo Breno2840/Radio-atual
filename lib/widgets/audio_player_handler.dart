@@ -33,13 +33,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     });
 
     _player.playerStateStream.listen((state) {
-      print('🎵 AudioHandler: Estado do player: ${state.processingState} | Playing: ${state.playing}');
-      
-      if (state.processingState == ProcessingState.idle && 
-          state.playing == false && 
-          mediaItem.value != null) {
-        print('⚠️ AudioHandler: Player parou inesperadamente');
-      }
+      print('🎵 AudioHandler: Estado: ${state.processingState} | Playing: ${state.playing}');
     }, onError: (error) {
       print('❌ AudioHandler: Erro no player: $error');
     });
@@ -74,10 +68,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       print('💾 AudioHandler: Estação salva');
       
       final item = createMediaItem(station);
-      print('📦 AudioHandler: MediaItem criado:');
-      print('   - ID: ${item.id}');
-      print('   - Title: ${item.title}');
-      print('   - Album: ${item.album}');
+      print('📦 AudioHandler: MediaItem criado');
       
       mediaItem.add(item);
       print('✅ AudioHandler: MediaItem ADICIONADO ao stream');
@@ -85,11 +76,28 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       await Future.delayed(const Duration(milliseconds: 100));
       
       print('⏳ AudioHandler: Carregando stream...');
-      await _player.setAudioSource(
-        AudioSource.uri(
-          Uri.parse(station.streamUrl.trim()),
-        ),
+      
+      // ✅ CONFIGURAÇÃO MELHORADA para lidar com redirects e diferentes formatos
+      final audioSource = AudioSource.uri(
+        Uri.parse(station.streamUrl.trim()),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36',
+          'Accept': '*/*',
+          'Connection': 'keep-alive',
+        },
       );
+      
+      // Configura com timeout maior para streams que fazem redirect
+      await _player.setAudioSource(
+        audioSource,
+        preload: true,
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          throw Exception('Timeout ao conectar com a rádio. Verifique sua conexão.');
+        },
+      );
+      
       print('✅ AudioHandler: Stream carregado');
       
       await play();
@@ -101,12 +109,37 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     } catch (e, stackTrace) {
       print('═══════════════════════════════════════');
       print('❌❌❌ ERRO AO TOCAR ${station.name}');
-      print('Erro: $e');
-      print('Stack: $stackTrace');
+      
+      // ✅ MENSAGENS DE ERRO MAIS AMIGÁVEIS
+      String errorMessage = 'Erro desconhecido';
+      
+      if (e.toString().contains('SocketException')) {
+        errorMessage = 'Sem conexão com a internet';
+      } else if (e.toString().contains('TimeoutException')) {
+        errorMessage = 'Tempo esgotado ao conectar';
+      } else if (e.toString().contains('HttpException')) {
+        errorMessage = 'Erro ao acessar o servidor';
+      } else if (e.toString().contains('FormatException')) {
+        errorMessage = 'Formato de áudio não suportado';
+      } else if (e.toString().contains('PlayerException')) {
+        errorMessage = 'Erro no player de áudio';
+      } else if (e.toString().contains('PlatformException')) {
+        errorMessage = 'Erro na plataforma';
+      } else if (e.toString().contains('Timeout')) {
+        errorMessage = 'Conexão muito lenta';
+      } else {
+        errorMessage = e.toString().split('\n').first;
+      }
+      
+      print('❌ Erro: $errorMessage');
+      print('❌ Detalhes técnicos: ${e.runtimeType}');
       print('═══════════════════════════════════════');
       
+      // Limpa o estado
       mediaItem.add(null);
-      rethrow;
+      
+      // Re-lança com mensagem amigável
+      throw Exception(errorMessage);
     }
   }
   
