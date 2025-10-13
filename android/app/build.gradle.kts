@@ -3,7 +3,7 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android") version "2.1.0"  // <= ADICIONE A VERSÃO AQUI
+    id("kotlin-android")  // <= SEM VERSÃO AQUI (vem do settings.gradle.kts)
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -85,7 +85,7 @@ flutter {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")  // <= ATUALIZE A VERSÃO AQUI
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")  // <= ATUALIZADO
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
 }
