@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:collection/collection.dart'; // Importar o pacote
 
 import '../widgets/audio_player_handler.dart';
 import '../models/radio_station.dart';
@@ -10,7 +11,7 @@ import '../pages/station_list_screen.dart';
 
 class AppLayout extends StatefulWidget {
   final AudioPlayerHandler audioHandler;
-  
+
   const AppLayout({
     super.key,
     required this.audioHandler,
@@ -48,7 +49,7 @@ class _AppLayoutState extends State<AppLayout> {
       print('📡 AppLayout: Carregando estações...');
       final stations = await RadioStation.fetchStations();
       print('✅ AppLayout: ${stations.length} estações carregadas');
-      
+
       if (mounted) {
         setState(() {
           _stations = stations;
@@ -99,21 +100,17 @@ class _AppLayoutState extends State<AppLayout> {
     if (mediaItem == null || _stations.isEmpty) {
       return null;
     }
-
-    try {
-      return _stations.firstWhere(
-        (station) => station.streamUrl.trim() == mediaItem.id.trim(),
-      );
-    } catch (e) {
-      print('⚠️ AppLayout: Estação não encontrada para: ${mediaItem.id}');
-      return null;
-    }
+    
+    // MELHORIA: Usando firstWhereOrNull para evitar exceções.
+    return _stations.firstWhereOrNull(
+      (station) => station.streamUrl.trim() == mediaItem.id.trim(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     print('🏗️ AppLayout: build (showingPlayer: $_showingPlayer)');
-    
+
     return WillPopScope(
       onWillPop: () async {
         if (!_showingPlayer) {
@@ -224,11 +221,11 @@ class _AppLayoutState extends State<AppLayout> {
 
           // Define a página atual
           Widget currentPage;
-          
+
           if (_showingPlayer) {
             // Se não tem MediaItem, usa a primeira estação
             final stationToShow = playingStation ?? _stations.first;
-            
+
             currentPage = PlayerScreen(
               audioHandler: widget.audioHandler,
               mediaItem: mediaItem,
@@ -269,7 +266,7 @@ class _AppLayoutState extends State<AppLayout> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: _showingPlayer 
+                colors: _showingPlayer
                     ? [_startColor, _endColor]
                     : [_listStartColor, _listEndColor],
               ),
