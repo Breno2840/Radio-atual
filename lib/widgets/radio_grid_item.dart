@@ -47,7 +47,7 @@ class RadioGridItem extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Área da imagem (ocupa a maior parte do card)
+            // Área da imagem
             Expanded(
               flex: 3,
               child: Stack(
@@ -60,11 +60,10 @@ class RadioGridItem extends StatelessWidget {
                         child: CachedNetworkImage(
                           imageUrl: station.artUrl,
                           fit: BoxFit.contain,
-                          // Adiciona headers para evitar problemas de CORS/SSL
                           httpHeaders: const {
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
                           },
-                          // Configurações de cache
                           maxWidthDiskCache: 500,
                           maxHeightDiskCache: 500,
                           fadeInDuration: const Duration(milliseconds: 300),
@@ -88,9 +87,8 @@ class RadioGridItem extends StatelessWidget {
                             ),
                           ),
                           errorWidget: (context, url, error) {
-                            // Log do erro para debug
-                            print('❌ Erro ao carregar imagem de ${station.name}: $error');
-                            print('URL: ${station.artUrl}');
+                            // Log simplificado - sem mostrar URL completa
+                            print('⚠️ Erro ao carregar imagem de ${station.name}');
                             
                             return Container(
                               decoration: BoxDecoration(
@@ -106,12 +104,15 @@ class RadioGridItem extends StatelessWidget {
                                     color: Colors.white.withOpacity(0.3),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(
-                                    'Imagem\nindisponível',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.white.withOpacity(0.3),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      'Logo\nindisponível',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.white.withOpacity(0.3),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -151,7 +152,7 @@ class RadioGridItem extends StatelessWidget {
               ),
             ),
             
-            // Área de texto (nome e localização)
+            // Área de texto
             Expanded(
               flex: 1,
               child: Container(
