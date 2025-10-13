@@ -1,11 +1,9 @@
-// android/app/build.gradle.kts
-
 import java.util.Properties
 import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    id("kotlin-android") version "2.1.0"  // <= ADICIONE A VERSÃO AQUI
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -60,9 +58,8 @@ android {
                 storePassword = signingProps.getProperty("storePassword")
                 keyAlias = signingProps.getProperty("keyAlias")
                 keyPassword = signingProps.getProperty("keyPassword")
-                storeType = "PKCS12" // OBRIGATÓRIO para seu keystore
+                storeType = "PKCS12"
             } else {
-                // Fallback para ambiente local (debug)
                 keyAlias = "androiddebugkey"
                 storePassword = "android"
                 keyPassword = "android"
@@ -88,7 +85,7 @@ flutter {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")  // <= ATUALIZE A VERSÃO AQUI
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.12.0")
 }
