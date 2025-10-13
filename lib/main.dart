@@ -10,7 +10,7 @@ import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart'; 
 import 'layout/app_layout.dart'; 
 
-late AudioPlayerHandler _audioHandler; 
+AudioPlayerHandler? _audioHandler;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,22 +26,31 @@ Future<void> main() async {
 
   if (Platform.isAndroid) {
     print('📱 Solicitando permissões Android...');
-    final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    print('📱 SDK Android: ${androidInfo.version.sdkInt}');
-    
-    if (androidInfo.version.sdkInt >= 33) {
-      final status = await Permission.notification.request();
-      print('🔔 Permissão de notificação: $status');
+    try {
+      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      print('📱 SDK Android: ${androidInfo.version.sdkInt}');
+      
+      if (androidInfo.version.sdkInt >= 33) {
+        final status = await Permission.notification.request();
+        print('🔔 Permissão de notificação: $status');
+      }
+    } catch (e) {
+      print('⚠️ Erro ao solicitar permissões: $e');
     }
   }
 
   print('💾 Carregando última rádio salva...');
-  RadioStation? lastStation = await RadioStation.loadLastStation();
-  if (lastStation != null) {
-    print('✅ Última rádio: ${lastStation.name}');
-  } else {
-    print('⚠️ Nenhuma rádio salva');
+  RadioStation? lastStation;
+  try {
+    lastStation = await RadioStation.loadLastStation();
+    if (lastStation != null) {
+      print('✅ Última rádio: ${lastStation.name}');
+    } else {
+      print('⚠️ Nenhuma rádio salva');
+    }
+  } catch (e) {
+    print('⚠️ Erro ao carregar última rádio: $e');
   }
 
   List<RadioStation> stations = [];
@@ -63,36 +72,97 @@ Future<void> main() async {
   );
   print('📻 Estação inicial: ${initialStation.name}');
 
-  try {
-    print('🎵 Inicializando AudioService...');
-    
-    _audioHandler = await AudioService.init(
-      builder: () {
-        print('🏗️ Criando AudioPlayerHandler...');
-        return AudioPlayerHandler();
-      },
-      config: const AudioServiceConfig(
-        androidNotificationChannelId: 'com.calculadora.my.channel.audio',
-        androidNotificationChannelName: 'Reprodução de Áudio',
-        androidNotificationOngoing: true,
-        androidStopForegroundOnPause: true,
-      ),
-    ) as AudioPlayerHandler;
-    
-    print('✅ AudioService inicializado com sucesso!');
-    print('✅ AudioHandler criado: ${_audioHandler.runtimeType}');
+  // Tenta inicializar o AudioService com retry
+  bool audioServiceInitialized = false;
+  int retryCount = 0;
+  const maxRetries = 3;
 
-    print('📥 Carregando estação inicial...');
-    await _audioHandler.loadStation(initialStation);
-    print('✅ Estação inicial carregada!');
-    
-  } catch (e, stackTrace) {
-    print("❌❌❌ ERRO CRÍTICO ao inicializar AudioService ❌❌❌");
-    print("Erro: $e");
-    print("StackTrace: $stackTrace");
-    
-    // ✅ CORREÇÃO: Mostra mensagem genérica sem expor URLs
-    runApp(MaterialApp(
+  while (!audioServiceInitialized && retryCount < maxRetries) {
+    try {
+      print('🎵 Tentativa ${retryCount + 1}/$maxRetries: Inicializando AudioService...');
+      
+      _audioHandler = await AudioService.init(
+        builder: () {
+          print('🏗️ Criando AudioPlayerHandler...');
+          return AudioPlayerHandler();
+        },
+        config: const AudioServiceConfig(
+          androidNotificationChannelId: 'com.breno.radioapp.channel.audio',
+          androidNotificationChannelName: 'Reprodução de Áudio',
+          androidNotificationOngoing: true,
+          androidStopForegroundOnPause: true,
+          androidShowNotificationBadge: true,
+        ),
+      ) as AudioPlayerHandler;
+      
+      print('✅ AudioService inicializado com sucesso!');
+      print('✅ AudioHandler criado: ${_audioHandler.runtimeType}');
+
+      print('📥 Carregando estação inicial...');
+      await _audioHandler!.loadStation(initialStation);
+      print('✅ Estação inicial carregada!');
+      
+      audioServiceInitialized = true;
+      
+    } catch (e, stackTrace) {
+      retryCount++;
+      print("❌ Tentativa $retryCount falhou: $e");
+      
+      if (retryCount < maxRetries) {
+        print("🔄 Tentando novamente em 1 segundo...");
+        await Future.delayed(const Duration(seconds: 1));
+      } else {
+        print("❌❌❌ ERRO CRÍTICO: Todas as tentativas falharam");
+        print("Último erro: $e");
+        print("StackTrace resumido: ${stackTrace.toString().split('\n').take(3).join('\n')}");
+        
+        // Mostra tela de erro amigável
+        runApp(ErrorApp(
+          onRetry: () async {
+            // Reinicia o app completamente
+            SystemNavigator.pop();
+          },
+        ));
+        return;
+      }
+    }
+  }
+
+  if (_audioHandler == null) {
+    print("❌ AudioHandler não foi inicializado");
+    runApp(ErrorApp(onRetry: () => SystemNavigator.pop()));
+    return;
+  }
+
+  print('🎉 App iniciado com sucesso!');
+  print('🚀 ========== INICIANDO UI ==========\n');
+  
+  runApp(MyApp(audioHandler: _audioHandler!));
+}
+
+class MyApp extends StatelessWidget {
+  final AudioPlayerHandler audioHandler;
+  const MyApp({super.key, required this.audioHandler});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Minha Rádio',
+      theme: ThemeData.dark(),
+      home: AppLayout(audioHandler: audioHandler),
+    );
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  final VoidCallback onRetry;
+  
+  const ErrorApp({super.key, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
       home: Scaffold(
         backgroundColor: const Color(0xFF1a1a2e),
         body: Center(
@@ -114,7 +184,7 @@ Future<void> main() async {
                 ),
                 const SizedBox(height: 15),
                 const Text(
-                  'Ocorreu um problema ao inicializar o reprodutor de áudio. Tente reiniciar o aplicativo.',
+                  'Não foi possível inicializar o reprodutor de áudio após várias tentativas.\n\nPor favor, tente reiniciar o aplicativo.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white70,
@@ -123,13 +193,11 @@ Future<void> main() async {
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    SystemNavigator.pop();
-                  },
-                  icon: const Icon(Icons.close),
-                  label: const Text('Fechar App'),
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reiniciar App'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 30,
@@ -137,32 +205,19 @@ Future<void> main() async {
                     ),
                   ),
                 ),
+                const SizedBox(height: 15),
+                TextButton(
+                  onPressed: () => SystemNavigator.pop(),
+                  child: const Text(
+                    'Fechar App',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ),
               ],
             ),
           ),
         ),
       ),
-    ));
-    return;
-  }
-
-  print('🎉 App iniciado com sucesso!');
-  print('🚀 ========== INICIANDO UI ==========\n');
-  
-  runApp(MyApp(audioHandler: _audioHandler));
-}
-
-class MyApp extends StatelessWidget {
-  final AudioPlayerHandler audioHandler;
-  const MyApp({super.key, required this.audioHandler});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Minha Rádio',
-      theme: ThemeData.dark(),
-      home: AppLayout(audioHandler: audioHandler),
     );
   }
 }
