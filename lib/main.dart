@@ -12,6 +12,9 @@ import 'layout/app_layout.dart';
 
 AudioPlayerHandler? _audioHandler;
 
+// Variável global para guardar a mensagem de erro detalhada
+String _criticalErrorDetails = '';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -108,28 +111,26 @@ Future<void> main() async {
       retryCount++;
       print("❌ Tentativa $retryCount falhou: $e");
       
-      if (retryCount < maxRetries) {
-        print("🔄 Tentando novamente em 1 segundo...");
-        await Future.delayed(const Duration(seconds: 1));
-      } else {
+      if (retryCount >= maxRetries) {
         print("❌❌❌ ERRO CRÍTICO: Todas as tentativas falharam");
-        print("Último erro: $e");
-        print("StackTrace resumido: ${stackTrace.toString().split('\n').take(3).join('\n')}");
         
-        // Mostra tela de erro amigável
+        // **AQUI ESTÁ A MUDANÇA: Guardamos o erro detalhado**
+        _criticalErrorDetails = 'ERRO CAPTURADO:\n${e.toString()}\n\nSTACK TRACE:\n${stackTrace.toString()}';
+        
         runApp(ErrorApp(
           onRetry: () async {
-            // Reinicia o app completamente
             SystemNavigator.pop();
           },
         ));
         return;
       }
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
 
   if (_audioHandler == null) {
     print("❌ AudioHandler não foi inicializado");
+    _criticalErrorDetails = "AudioHandler não foi inicializado, mas nenhuma exceção foi capturada. Verifique a configuração nativa.";
     runApp(ErrorApp(onRetry: () => SystemNavigator.pop()));
     return;
   }
@@ -168,52 +169,73 @@ class ErrorApp extends StatelessWidget {
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(30.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 80, color: Colors.red),
-                const SizedBox(height: 30),
-                const Text(
-                  'Erro ao inicializar o player',
-                  style: TextStyle(
-                    fontSize: 22, 
-                    fontWeight: FontWeight.bold, 
-                    color: Colors.white
+            child: SingleChildScrollView( // Permite rolar a tela se o erro for grande
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 80, color: Colors.red),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Erro ao inicializar o player',
+                    style: TextStyle(
+                      fontSize: 22, 
+                      fontWeight: FontWeight.bold, 
+                      color: Colors.white
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 15),
-                const Text(
-                  'Não foi possível inicializar o reprodutor de áudio após várias tentativas.\n\nPor favor, tente reiniciar o aplicativo.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                ElevatedButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Reiniciar App'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 15,
+                  const SizedBox(height: 15),
+                  const Text(
+                    'Não foi possível inicializar o reprodutor de áudio após várias tentativas.\n\nPor favor, tente reiniciar o aplicativo.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
                     ),
                   ),
-                ),
-                const SizedBox(height: 15),
-                TextButton(
-                  onPressed: () => SystemNavigator.pop(),
-                  child: const Text(
-                    'Fechar App',
-                    style: TextStyle(color: Colors.white54),
+                  const SizedBox(height: 30),
+                  ElevatedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reiniciar App'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 15),
+                  TextButton(
+                    onPressed: () => SystemNavigator.pop(),
+                    child: const Text(
+                      'Fechar App',
+                      style: TextStyle(color: Colors.white54),
+                    ),
+                  ),
+
+                  // **AQUI ESTÁ A MUDANÇA: Exibimos o erro detalhado**
+                  if (_criticalErrorDetails.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 25.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.withOpacity(0.5))
+                        ),
+                        child: SelectableText( // Permite que você copie o texto do erro
+                          _criticalErrorDetails,
+                          style: const TextStyle(color: Colors.redAccent, fontFamily: 'monospace', fontSize: 11),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
