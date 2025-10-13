@@ -5,7 +5,7 @@ import '../widgets/audio_player_handler.dart';
 import '../widgets/radio_grid_item.dart';
 import '../widgets/mini_player.dart';
 
-class StationListScreen extends StatelessWidget {
+class StationListScreen extends StatefulWidget {
   final AudioPlayerHandler audioHandler;
   final VoidCallback onShowPlayer;
 
@@ -16,9 +16,30 @@ class StationListScreen extends StatelessWidget {
   });
 
   @override
+  State<StationListScreen> createState() => _StationListScreenState();
+}
+
+class _StationListScreenState extends State<StationListScreen> {
+  late Future<List<RadioStation>> _futureStations;
+  ScrollController? _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureStations = RadioStation.fetchStations();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<RadioStation>>(
-      future: RadioStation.fetchStations(),
+      future: _futureStations,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -45,7 +66,7 @@ class StationListScreen extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, List<RadioStation> stations) {
     return StreamBuilder<MediaItem?>(
-      stream: audioHandler.mediaItem,
+      stream: widget.audioHandler.mediaItem,
       builder: (context, mediaSnapshot) {
         final mediaItem = mediaSnapshot.data;
         RadioStation? playingStation;
@@ -65,6 +86,7 @@ class StationListScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: GridView.builder(
+                  controller: _scrollController, // ← Mantém o scroll
                   physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.only(
                     left: 16.0,
@@ -87,7 +109,7 @@ class StationListScreen extends StatelessWidget {
                     return RadioGridItem(
                       station: station,
                       isPlaying: isPlaying,
-                      onTap: () => audioHandler.playStation(station),
+                      onTap: () => widget.audioHandler.playStation(station),
                     );
                   },
                 ),
@@ -96,10 +118,10 @@ class StationListScreen extends StatelessWidget {
           ),
           bottomNavigationBar: showMiniPlayer && mediaItem != null && playingStation != null
               ? MiniPlayer(
-                  audioHandler: audioHandler,
+                  audioHandler: widget.audioHandler,
                   mediaItem: mediaItem,
                   station: playingStation!,
-                  onTap: onShowPlayer,
+                  onTap: widget.onShowPlayer,
                 )
               : null,
         );
