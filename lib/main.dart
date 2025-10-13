@@ -6,16 +6,17 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:collection/collection.dart';
 
-// Imports dos seus arquivos de código
 import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart'; 
 import 'layout/app_layout.dart'; 
 
-// Variável global para o handler: VOLTA AO TIPO CONCRETO
 late AudioPlayerHandler _audioHandler; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  print('🚀 ========== INICIANDO APP ==========');
+  
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.transparent,
@@ -24,23 +25,32 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.light));
 
   if (Platform.isAndroid) {
+    print('📱 Solicitando permissões Android...');
     final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    print('📱 SDK Android: ${androidInfo.version.sdkInt}');
+    
     if (androidInfo.version.sdkInt >= 33) {
-      await Permission.notification.request();
+      final status = await Permission.notification.request();
+      print('🔔 Permissão de notificação: $status');
     }
   }
 
-  // LÓGICA DE CARREGAMENTO DA ÚLTIMA RÁDIO
+  print('💾 Carregando última rádio salva...');
   RadioStation? lastStation = await RadioStation.loadLastStation();
+  if (lastStation != null) {
+    print('✅ Última rádio: ${lastStation.name}');
+  } else {
+    print('⚠️ Nenhuma rádio salva');
+  }
 
-  // Busca as estações online com fallback
   List<RadioStation> stations = [];
   try {
+    print('🌐 Buscando estações online...');
     stations = await RadioStation.fetchStations();
+    print('✅ ${stations.length} estações carregadas');
   } catch (e) {
-    print("Erro ao carregar estações online: $e");
-    // Não encerra o app, apenas usa uma estação padrão
+    print("❌ Erro ao carregar estações online: $e");
   }
 
   final initialStation = lastStation ?? stations.firstOrNull ?? const RadioStation(
@@ -51,30 +61,79 @@ Future<void> main() async {
     streamUrl: 'https://exemplo.com/radio.mp3',
     artUrl: 'https://exemplo.com/arte.jpg',
   );
+  print('📻 Estação inicial: ${initialStation.name}');
 
   try {
-    // Inicializa o AudioService
+    print('🎵 Inicializando AudioService...');
+    
     _audioHandler = await AudioService.init(
-      builder: () => AudioPlayerHandler(),
+      builder: () {
+        print('🏗️ Criando AudioPlayerHandler...');
+        return AudioPlayerHandler();
+      },
       config: const AudioServiceConfig(
         androidNotificationChannelId: 'com.calculadora.my.channel.audio',
         androidNotificationChannelName: 'Reprodução de Áudio',
         androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
       ),
-    ) as AudioPlayerHandler; // Mantém o cast para o tipo concreto
+    ) as AudioPlayerHandler;
+    
+    print('✅ AudioService inicializado com sucesso!');
+    print('✅ AudioHandler criado: ${_audioHandler.runtimeType}');
 
-    // Carrega os metadados usando o NOVO MÉTODO loadStation (Dentro da classe)
+    print('📥 Carregando estação inicial...');
     await _audioHandler.loadStation(initialStation);
-  } catch (e) {
-    print("Erro ao inicializar AudioService: $e");
-    // Aqui você pode adicionar fallbacks ou mensagens de erro
+    print('✅ Estação inicial carregada!');
+    
+  } catch (e, stackTrace) {
+    print("❌❌❌ ERRO CRÍTICO ao inicializar AudioService ❌❌❌");
+    print("Erro: $e");
+    print("StackTrace: $stackTrace");
+    
+    runApp(MaterialApp(
+      home: Scaffold(
+        backgroundColor: const Color(0xFF1a1a2e),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 20),
+                const Text(
+                  'Erro ao inicializar o player',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '$e',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    SystemNavigator.pop();
+                  },
+                  child: const Text('Fechar App'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ));
+    return;
   }
 
+  print('🎉 App iniciado com sucesso!');
+  print('🚀 ========== INICIANDO UI ==========\n');
+  
   runApp(MyApp(audioHandler: _audioHandler));
 }
 
-// MyApp agora é um simples StatelessWidget
 class MyApp extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
   const MyApp({super.key, required this.audioHandler});
@@ -85,7 +144,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Minha Rádio',
       theme: ThemeData.dark(),
-      // O home aponta para o AppLayout
       home: AppLayout(audioHandler: audioHandler),
     );
   }
