@@ -91,33 +91,51 @@ Future<void> main() async {
     print("Erro: $e");
     print("StackTrace: $stackTrace");
     
+    // ✅ CORREÇÃO: Mostra mensagem genérica sem expor URLs
     runApp(MaterialApp(
       home: Scaffold(
         backgroundColor: const Color(0xFF1a1a2e),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(30.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error, size: 64, color: Colors.red),
-                const SizedBox(height: 20),
+                const Icon(Icons.error_outline, size: 80, color: Colors.red),
+                const SizedBox(height: 30),
                 const Text(
                   'Erro ao inicializar o player',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '$e',
+                  style: TextStyle(
+                    fontSize: 22, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.white
+                  ),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70),
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+                const SizedBox(height: 15),
+                const Text(
+                  'Ocorreu um problema ao inicializar o reprodutor de áudio. Tente reiniciar o aplicativo.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton.icon(
                   onPressed: () {
                     SystemNavigator.pop();
                   },
-                  child: const Text('Fechar App'),
+                  icon: const Icon(Icons.close),
+                  label: const Text('Fechar App'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 15,
+                    ),
+                  ),
                 ),
               ],
             ),
