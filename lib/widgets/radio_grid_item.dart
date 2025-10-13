@@ -30,12 +30,16 @@ class RadioGridItem extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
+            color: isPlaying 
+                ? Colors.blue.withOpacity(0.5)
+                : Colors.white.withOpacity(0.1),
+            width: isPlaying ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: isPlaying 
+                  ? Colors.blue.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -46,43 +50,104 @@ class RadioGridItem extends StatelessWidget {
             // Área da imagem (ocupa a maior parte do card)
             Expanded(
               flex: 3,
-              child: Container(
-                padding: const EdgeInsets.all(0),
-                child: Center(
-                  child: CachedNetworkImage(
-                    imageUrl: station.artUrl,
-                    fit: BoxFit.contain,
-                    placeholder: (context, url) => Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[900]?.withOpacity(0.3),
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Center(
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white.withOpacity(0.5),
+                        child: CachedNetworkImage(
+                          imageUrl: station.artUrl,
+                          fit: BoxFit.contain,
+                          // Adiciona headers para evitar problemas de CORS/SSL
+                          httpHeaders: const {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                          },
+                          // Configurações de cache
+                          maxWidthDiskCache: 500,
+                          maxHeightDiskCache: 500,
+                          fadeInDuration: const Duration(milliseconds: 300),
+                          fadeOutDuration: const Duration(milliseconds: 100),
+                          placeholder: (context, url) => Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[900]?.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white.withOpacity(0.5),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
+                          errorWidget: (context, url, error) {
+                            // Log do erro para debug
+                            print('❌ Erro ao carregar imagem de ${station.name}: $error');
+                            print('URL: ${station.artUrl}');
+                            
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[900]?.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.radio,
+                                    size: 50,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Imagem\nindisponível',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.white.withOpacity(0.3),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[900]?.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.radio,
-                        size: 50,
-                        color: Colors.white.withOpacity(0.3),
+                  ),
+                  // Indicador de "tocando agora"
+                  if (isPlaying)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.withOpacity(0.5),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                ],
               ),
             ),
             
@@ -92,16 +157,30 @@ class RadioGridItem extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.2),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       '${station.name} ${station.frequency} ${station.band}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: isPlaying ? Colors.blue[300] : Colors.white,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
