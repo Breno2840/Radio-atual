@@ -28,6 +28,14 @@ class _StationListScreenState extends State<StationListScreen> {
     super.initState();
     _futureStations = RadioStation.fetchStations();
     _scrollController = ScrollController();
+    
+    // Debug: monitora mudanças no mediaItem
+    widget.audioHandler.mediaItem.listen((item) {
+      print('📻 StationList: MediaItem mudou: ${item?.title}');
+      if (mounted) {
+        setState(() {}); // Força rebuild quando mediaItem mudar
+      }
+    });
   }
 
   @override
@@ -71,17 +79,24 @@ class _StationListScreenState extends State<StationListScreen> {
         final mediaItem = mediaSnapshot.data;
         RadioStation? playingStation;
 
+        // Debug
+        print('🔄 StationList: Rebuild - MediaItem: ${mediaItem?.title}');
+
         if (mediaItem != null) {
           try {
             playingStation = stations.firstWhere(
-              (station) => station.streamUrl == mediaItem.id,
+              (station) => station.streamUrl.trim() == mediaItem.id.trim(),
             );
+            print('✅ StationList: Estação encontrada: ${playingStation.name}');
           } catch (e) {
+            print('⚠️ StationList: Estação não encontrada para: ${mediaItem.id}');
             playingStation = null;
           }
         }
 
         final showMiniPlayer = mediaItem != null && playingStation != null;
+        
+        print('👀 StationList: showMiniPlayer = $showMiniPlayer');
 
         return Scaffold(
           backgroundColor: Colors.transparent,
@@ -107,17 +122,18 @@ class _StationListScreenState extends State<StationListScreen> {
                   itemBuilder: (context, index) {
                     final station = stations[index];
                     final isPlaying = mediaItem != null && 
-                                     station.streamUrl == mediaItem.id;
+                                     station.streamUrl.trim() == mediaItem.id.trim();
 
                     return RadioGridItem(
                       station: station,
                       isPlaying: isPlaying,
                       onTap: () async {
+                        print('🎵 StationList: Clicou em: ${station.name}');
                         try {
                           await widget.audioHandler.playStation(station);
-                          print('✅ Tocando: ${station.name}');
+                          print('✅ StationList: Tocando: ${station.name}');
                         } catch (e) {
-                          print('❌ Erro ao tocar: $e');
+                          print('❌ StationList: Erro ao tocar: $e');
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -135,12 +151,12 @@ class _StationListScreenState extends State<StationListScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: showMiniPlayer
+          bottomNavigationBar: showMiniPlayer && playingStation != null
               ? SafeArea(
                   child: MiniPlayer(
                     audioHandler: widget.audioHandler,
                     mediaItem: mediaItem!,
-                    station: playingStation!,
+                    station: playingStation,
                     onTap: widget.onShowPlayer,
                   ),
                 )
