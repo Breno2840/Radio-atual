@@ -1,3 +1,5 @@
+// lib/pages/player_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -47,6 +49,51 @@ class PlayerScreen extends StatelessWidget {
               onPressed: onShowList,
             ),
           ),
+
+          // --- NOVO: STREAM BUILDER PARA EXIBIR MENSAGEM DE ERRO ---
+          StreamBuilder<String?>(
+            stream: audioHandler.currentError,
+            builder: (context, snapshot) {
+              final errorMessage = snapshot.data;
+              if (errorMessage != null) {
+                return GlassmorphicContainer(
+                  width: screenWidth * 0.9,
+                  height: null,
+                  margin: const EdgeInsets.only(top: 8, bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  borderRadius: 12,
+                  blur: 10,
+                  alignment: Alignment.center,
+                  border: 2,
+                  linearGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.red.withOpacity(0.2),
+                      Colors.red.withOpacity(0.1),
+                    ],
+                  ),
+                  borderGradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.redAccent, Colors.red],
+                  ),
+                  child: Text(
+                    errorMessage,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white, // Usa branco para melhor legibilidade
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          // --- FIM DO BLOCO DE ERRO ---
+
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -70,8 +117,8 @@ class PlayerScreen extends StatelessWidget {
                       child: CachedNetworkImage(
                         imageUrl: artUri.toString(),
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => const Icon(Icons.music_note, size: 100),
+                        placeholder: (context, url) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+                        errorWidget: (context, url, error) => const Icon(Icons.music_note, size: 100, color: Colors.white),
                       ),
                     ),
                   ),
