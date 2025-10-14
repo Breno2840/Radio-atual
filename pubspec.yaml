@@ -15,6 +15,9 @@ dependencies:
   just_audio: ^0.9.36
   audio_session: ^0.1.18
 
+  # >>> ADICIONADO PARA DEPURAR ERROS NA TELA (NOVO) <<<
+  rxdart: ^0.27.7 
+  
   # Persistência de dados simples para a última rádio ouvida
   shared_preferences: ^2.2.3
 
@@ -27,7 +30,7 @@ dependencies:
   glassmorphism: ^3.0.0
   palette_generator: ^0.3.3+3
 
-  # >>> ADICIONADO PARA REQUISIÇÕES HTTP <<<
+  # Para requisições HTTP
   http: ^1.2.1
 
   cupertino_icons: ^1.0.2
