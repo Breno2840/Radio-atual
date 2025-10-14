@@ -12,7 +12,6 @@ import 'models/radio_station.dart';
 import 'widgets/audio_player_handler.dart'; 
 import 'layout/app_layout.dart'; 
 
-// Variável global para o handler: VOLTA AO TIPO CONCRETO
 late AudioPlayerHandler _audioHandler; 
 
 Future<void> main() async {
@@ -31,12 +30,8 @@ Future<void> main() async {
       await Permission.notification.request();
     }
   }
-
-  // LÓGICA DE CARREGAMENTO DA ÚLTIMA RÁDIO
-  RadioStation? lastStation = await RadioStation.loadLastStation();
-  final initialStation = lastStation ?? radioStations.first;
   
-  // Inicializa o AudioService
+  // Inicializa o AudioService primeiro
   _audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
@@ -45,15 +40,21 @@ Future<void> main() async {
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
     ),
-  ) as AudioPlayerHandler; // Mantém o cast para o tipo concreto
+  ) as AudioPlayerHandler;
 
-  // Carrega os metadados usando o NOVO MÉTODO loadStation (Dentro da classe)
-  await _audioHandler.loadStation(initialStation); 
+  // --- LÓGICA DE CARREGAMENTO CORRIGIDA ---
+  // Tenta carregar a última estação ouvida.
+  RadioStation? lastStation = await RadioStation.loadLastStation();
+  
+  // Se houver uma última estação, carrega ela no player.
+  // Se não, o app simplesmente inicia com o player vazio.
+  if (lastStation != null) {
+    await _audioHandler.loadStation(lastStation);
+  }
   
   runApp(MyApp(audioHandler: _audioHandler));
 }
 
-// MyApp agora é um simples StatelessWidget
 class MyApp extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
   const MyApp({super.key, required this.audioHandler});
@@ -64,7 +65,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Minha Rádio',
       theme: ThemeData.dark(),
-      // O home aponta para o AppLayout
       home: AppLayout(audioHandler: audioHandler),
     );
   }
