@@ -5,7 +5,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:palette_generator/palette_generator.dart';
 
-import '../services/radio_service.dart';
+// Imports dos seus arquivos
+import '../services/radio_service.dart'; // Importar o serviço de rádio
 import '../widgets/audio_player_handler.dart';
 import '../models/radio_station.dart';
 import '../pages/player_screen.dart';
@@ -25,10 +26,12 @@ class AppLayout extends StatefulWidget {
 }
 
 class _AppLayoutState extends State<AppLayout> {
+  // --- NOVAS VARIÁVEIS DE ESTADO ---
   late Future<List<RadioStation>> _stationsFuture;
   // O app agora sempre tentará mostrar o player primeiro.
   bool _showingPlayer = true; 
 
+  // Cores Dinâmicas e Padrão
   Color _startColor = const Color(0xFF1D244D);
   Color _endColor = const Color(0xFF000000);
   final Color _defaultStartColor = const Color(0xFF1D244D);
@@ -38,9 +41,10 @@ class _AppLayoutState extends State<AppLayout> {
   @override
   void initState() {
     super.initState();
+    // Inicia a busca pela lista de rádios
     _stationsFuture = RadioService().fetchRadioStations();
-    // A lógica de qual tela mostrar foi movida para o build,
-    // garantindo que temos a lista de rádios primeiro.
+    // Define a tela inicial: mostra o player.
+    _showingPlayer = true; 
   }
 
   void _toggleScreen(bool showPlayer) {
@@ -71,22 +75,46 @@ class _AppLayoutState extends State<AppLayout> {
 
   @override
   Widget build(BuildContext context) {
+    // --- USA O FUTUREBUILDER PARA GARANTIR QUE A LISTA DE RÁDIOS FOI CARREGADA ---
     return FutureBuilder<List<RadioStation>>(
       future: _stationsFuture,
       builder: (context, stationListSnapshot) {
+        
+        // --- ESTADO DE CARREGAMENTO ---
         if (stationListSnapshot.connectionState == ConnectionState.waiting) {
           return Container(
              color: _defaultStartColor,
              child: const Center(child: CircularProgressIndicator(color: Colors.white))
           );
         }
-        if (stationListSnapshot.hasError || !stationListSnapshot.hasData || stationListSnapshot.data!.isEmpty) {
+
+        // --- BLOCO CORRIGIDO PARA EXIBIR O ERRO FATAL ---
+        if (stationListSnapshot.hasError) {
+          // Captura e exibe a mensagem de erro que está impedindo o carregamento.
+          final errorText = stationListSnapshot.error.toString();
+          return Container(
+            color: Colors.black, // Fundo preto para maior contraste
+            padding: const EdgeInsets.all(32),
+            child: Center(
+              child: Text(
+                'ERRO DE CARREGAMENTO:\n\n$errorText\n\nVerifique o link do JSON ($RadioService._jsonUrl) ou a conexão de internet.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+              ),
+            ),
+          );
+        }
+        // --- FIM DO BLOCO DE ERRO ---
+        
+        // Se não houver dados mesmo sem erro (lista vazia)
+        if (!stationListSnapshot.hasData || stationListSnapshot.data!.isEmpty) {
           return Container(
             color: _defaultStartColor,
-            child: const Center(child: Text('Não foi possível carregar as rádios.', style: TextStyle(color: Colors.white)))
+            child: const Center(child: Text('Nenhuma estação de rádio encontrada. O link JSON retornou uma lista vazia.', style: TextStyle(color: Colors.white)))
           );
         }
 
+        // A PARTIR DAQUI, TEMOS A LISTA DE RÁDIOS (stations)
         final stations = stationListSnapshot.data!;
 
         return StreamBuilder<MediaItem?>(
@@ -104,6 +132,7 @@ class _AppLayoutState extends State<AppLayout> {
             final startColor = _showingPlayer ? _startColor : _defaultStartColor;
             final endColor = _showingPlayer ? _endColor : _defaultEndColor;
 
+            // --- LÓGICA DE RESOLUÇÃO DA ESTAÇÃO ---
             RadioStation playingStation;
             if (mediaItem != null) {
               // Se uma rádio está tocando, encontra ela na lista
@@ -142,7 +171,12 @@ class _AppLayoutState extends State<AppLayout> {
                       colors: [startColor, endColor])),
               child: Scaffold(
                 backgroundColor: Colors.transparent,
-                body: currentPage,
+                body: SafeArea( // Adicionado SafeArea aqui para envolver toda a tela
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: currentPage,
+                  ),
+                ),
               ),
             );
           },
