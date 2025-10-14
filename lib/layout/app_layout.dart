@@ -1,9 +1,12 @@
+// lib/layout/app_layout.dart
+
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:palette_generator/palette_generator.dart';
 
 // Imports dos seus arquivos
+import '../services/radio_service.dart'; // Importar o serviço de rádio
 import '../widgets/audio_player_handler.dart';
 import '../models/radio_station.dart';
 import '../pages/player_screen.dart';
@@ -11,7 +14,6 @@ import '../pages/station_list_screen.dart';
 
 
 class AppLayout extends StatefulWidget {
-  // Recebe o handler e a estação inicial, igual ao antigo MyApp
   final AudioPlayerHandler audioHandler;
   
   const AppLayout({
@@ -24,6 +26,10 @@ class AppLayout extends StatefulWidget {
 }
 
 class _AppLayoutState extends State<AppLayout> {
+  // --- NOVAS VARIÁVEIS DE ESTADO ---
+  late Future<List<RadioStation>> _stationsFuture;
+  late bool _showingPlayer;
+
   // Cores Dinâmicas e Padrão
   Color _startColor = const Color(0xFF1D244D);
   Color _endColor = const Color(0xFF000000);
@@ -31,14 +37,19 @@ class _AppLayoutState extends State<AppLayout> {
   final Color _defaultEndColor = const Color(0xFF000000);
   Uri? _lastArtUri;
 
-  // Estado para controlar a tela atual: Player (true) ou Lista (false)
-  bool _showingPlayer = true;
+  @override
+  void initState() {
+    super.initState();
+    // Inicia a busca pela lista de rádios
+    _stationsFuture = RadioService().fetchRadioStations();
+    // Define a tela inicial: mostra o player se já houver uma rádio tocando, senão mostra a lista.
+    _showingPlayer = widget.audioHandler.mediaItem.value != null;
+  }
 
   void _toggleScreen(bool showPlayer) {
     if (_showingPlayer != showPlayer) {
       setState(() {
         _showingPlayer = showPlayer;
-        // Quando alterna para a Lista, força o uso das cores escuras fixas
         if (!showPlayer) {
           _startColor = _defaultStartColor;
           _endColor = _defaultEndColor;
@@ -64,72 +75,82 @@ class _AppLayoutState extends State<AppLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<MediaItem?>(
-      stream: widget.audioHandler.mediaItem,
-      builder: (context, snapshot) {
-        final mediaItem = snapshot.data;
-
-        // Lógica de Cor Dinâmica:
-        if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
-          _lastArtUri = mediaItem.artUri;
-          if (mediaItem.artUri != null) {
-            _updateBackgroundColors(mediaItem.artUri!);
-          }
+    // --- USA O FUTUREBUILDER PARA GARANTIR QUE A LISTA DE RÁDIOS FOI CARREGADA ---
+    return FutureBuilder<List<RadioStation>>(
+      future: _stationsFuture,
+      builder: (context, stationListSnapshot) {
+        if (stationListSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (stationListSnapshot.hasError || !stationListSnapshot.hasData) {
+          return const Center(child: Text('Erro ao carregar estações.', style: TextStyle(color: Colors.white)));
         }
 
-        // Cores usadas: Dinâmicas se for Player, ou as Cores fixas
-        final startColor = _showingPlayer ? _startColor : _defaultStartColor;
-        final endColor = _showingPlayer ? _endColor : _defaultEndColor;
+        final stations = stationListSnapshot.data!;
 
-        // Resolução da Estação (mantida aqui, pois depende do mediaItem)
-        RadioStation? playingStation;
-        if (mediaItem != null) {
-          playingStation = radioStations.firstWhere(
-            (station) => station.streamUrl == mediaItem.id,
-            orElse: () => radioStations.first,
-          );
-        } else {
-          // Garante que o Player inicie com a rádio padrão se o MediaItem estiver nulo
-          playingStation = radioStations.first;
-        }
+        return StreamBuilder<MediaItem?>(
+          stream: widget.audioHandler.mediaItem,
+          builder: (context, mediaItemSnapshot) {
+            final mediaItem = mediaItemSnapshot.data;
 
-        // Define a tela a ser exibida
-        Widget currentPage;
-        
-        // Se estamos no modo Player OU se algo está tocando, mostramos o PlayerScreen
-        if (_showingPlayer) {
-          currentPage = PlayerScreen(
-            audioHandler: widget.audioHandler,
-            mediaItem: mediaItem,
-            station: playingStation!,
-            onShowList: () => _toggleScreen(false), // O botão no Player define _showingPlayer para false
-          );
-        } else {
-          // Caso contrário, mostramos a Lista de Rádios
-          currentPage = StationListScreen(
-            audioHandler: widget.audioHandler,
-            onShowPlayer: () => _toggleScreen(true), // O botão no MiniPlayer/Lista define _showingPlayer para true
-          );
-        }
+            if (_showingPlayer && mediaItem != null && mediaItem.artUri != _lastArtUri) {
+              _lastArtUri = mediaItem.artUri;
+              if (mediaItem.artUri != null) {
+                _updateBackgroundColors(mediaItem.artUri!);
+              }
+            }
+            
+            final startColor = _showingPlayer ? _startColor : _defaultStartColor;
+            final endColor = _showingPlayer ? _endColor : _defaultEndColor;
 
-        // Estrutura do Layout com Gradiente e Scaffold
-        return AnimatedContainer(
-          duration: const Duration(seconds: 1),
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [startColor, endColor])),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: currentPage, // A tela que está sendo exibida.
+            // --- LÓGICA DE RESOLUÇÃO DA ESTAÇÃO CORRIGIDA ---
+            RadioStation? playingStation;
+            if (mediaItem != null) {
+              playingStation = stations.firstWhere(
+                (station) => station.streamUrl == mediaItem.id,
+                orElse: () => stations.first, // Fallback para a primeira da lista online
+              );
+            }
+
+            Widget currentPage;
+            
+            if (_showingPlayer) {
+              // Garante que não tentamos mostrar o PlayerScreen sem uma estação
+              if (playingStation != null) {
+                 currentPage = PlayerScreen(
+                    audioHandler: widget.audioHandler,
+                    mediaItem: mediaItem,
+                    station: playingStation,
+                    onShowList: () => _toggleScreen(false),
+                  );
+              } else {
+                // Se por algum motivo não houver estação, mostra a lista.
+                currentPage = StationListScreen(
+                  audioHandler: widget.audioHandler,
+                  onShowPlayer: () => _toggleScreen(true),
+                );
+              }
+            } else {
+              currentPage = StationListScreen(
+                audioHandler: widget.audioHandler,
+                onShowPlayer: () => _toggleScreen(true),
+              );
+            }
+
+            return AnimatedContainer(
+              duration: const Duration(seconds: 1),
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [startColor, endColor])),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: currentPage, // Note que removemos o SafeArea e Padding daqui
+                                   // porque as telas internas (Player e Lista) já devem controlá-los.
               ),
-            ),
-            bottomNavigationBar: null,
-          ),
+            );
+          },
         );
       },
     );
