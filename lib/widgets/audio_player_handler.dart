@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/radio_station.dart'; 
 
-// --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM ---
+// --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM (Mantida) ---
 MediaItem createMediaItem(RadioStation station) {
   return MediaItem(
     id: station.streamUrl, 
@@ -21,6 +21,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   AudioPlayerHandler() { _init(); }
   
   Future<void> _init() async {
+    // Sua lógica de ICY Metadata foi totalmente preservada.
     _player.icyMetadataStream.listen((metadata) {
       final mediaItemAtual = mediaItem.value;
       if (mediaItemAtual == null) return;
@@ -34,22 +35,38 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
   }
 
-  // NOVO MÉTODO: Carrega o MediaItem sem tocar (usado na inicialização)
   Future<void> loadStation(RadioStation station) async {
     final mediaItem = createMediaItem(station);
-    this.mediaItem.add(mediaItem); // ✅ Corrigido: não usa super.setMediaItem()
+    this.mediaItem.add(mediaItem);
   }
   
+  // --- MÉTODO playStation ATUALIZADO ---
   Future<void> playStation(RadioStation station) async {
-    // Ação: Salvar a estação no armazenamento local
     await RadioStation.saveStation(station); 
-    
-    // Ação: Criar o MediaItem usando a função de utilidade
     final mediaItem = createMediaItem(station); 
     
-    await _player.setAudioSource(AudioSource.uri(Uri.parse(station.streamUrl)));
-    this.mediaItem.add(mediaItem);
-    play();
+    try {
+      // 1. ADICIONADO HEADER 'User-Agent' PARA MELHORAR COMPATIBILIDADE
+      final audioSource = AudioSource.uri(
+        Uri.parse(station.streamUrl),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+        },
+      );
+
+      // 2. ADICIONADO Bloco try-catch PARA TRATAR LINKS QUEBRADOS
+      await _player.setAudioSource(audioSource);
+      
+      // Apenas atualiza o media item e toca se o link for válido
+      this.mediaItem.add(mediaItem);
+      play();
+
+    } catch (e) {
+      // Se o link estiver quebrado, o erro é capturado aqui
+      print("ERRO AO CARREGAR O STREAM: $e");
+      // Para o player para limpar o estado e evitar travamentos
+      stop();
+    }
   }
   
   @override
@@ -61,7 +78,10 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
-    mediaItem.add(null);
+    // Limpar o mediaItem da interface quando parar
+    if (mediaItem.value != null) {
+      mediaItem.add(null);
+    }
     await super.stop();
   }
   
