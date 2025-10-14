@@ -2,6 +2,7 @@
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/rxdart.dart'; // <<< NOVO IMPORT
 import '../models/radio_station.dart'; 
 
 // --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM (Mantida) ---
@@ -18,10 +19,14 @@ MediaItem createMediaItem(RadioStation station) {
 
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
+  
+  // NOVO: Stream para guardar e emitir o último erro de reprodução
+  final _currentError = BehaviorSubject<String?>.seeded(null);
+  Stream<String?> get currentError => _currentError.stream; // Getter público
+
   AudioPlayerHandler() { _init(); }
   
   Future<void> _init() async {
-    // Sua lógica de ICY Metadata foi totalmente preservada.
     _player.icyMetadataStream.listen((metadata) {
       final mediaItemAtual = mediaItem.value;
       if (mediaItemAtual == null) return;
@@ -40,31 +45,37 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     this.mediaItem.add(mediaItem);
   }
   
-  // --- MÉTODO playStation ATUALIZADO ---
+  // --- MÉTODO playStation ATUALIZADO com User-Agent, Erro e await play() ---
   Future<void> playStation(RadioStation station) async {
+    // 1. Limpa o erro anterior antes de tentar tocar um novo
+    _currentError.add(null); 
     await RadioStation.saveStation(station); 
     final mediaItem = createMediaItem(station); 
     
     try {
-      // 1. ADICIONADO HEADER 'User-Agent' PARA MELHORAR COMPATIBILIDADE
+      // Adicionado User-Agent para melhor compatibilidade com streams restritos (BandNews, Jovem Pan)
+      const userAgentString = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36';
+
       final audioSource = AudioSource.uri(
         Uri.parse(station.streamUrl),
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+          'User-Agent': userAgentString,
         },
       );
 
-      // 2. ADICIONADO Bloco try-catch PARA TRATAR LINKS QUEBRADOS
       await _player.setAudioSource(audioSource);
       
-      // Apenas atualiza o media item e toca se o link for válido
       this.mediaItem.add(mediaItem);
-      play();
+      await play(); // <<< AGORA FORÇA O INÍCIO DA REPRODUÇÃO
 
     } catch (e) {
-      // Se o link estiver quebrado, o erro é capturado aqui
-      print("ERRO AO CARREGAR O STREAM: $e");
-      // Para o player para limpar o estado e evitar travamentos
+      // 2. Captura a mensagem de erro
+      final errorMessage = 'Falha ao tocar ${station.name}. Causa: ${e.toString().split(':').first}';
+      
+      // 3. Armazena a mensagem de erro para ser exibida na tela
+      _currentError.add(errorMessage); 
+      
+      // 4. Para o player para limpar o estado
       stop();
     }
   }
