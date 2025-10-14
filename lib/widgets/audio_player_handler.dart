@@ -2,7 +2,7 @@
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:rxdart/rxdart.dart'; // <<< NOVO IMPORT
+import 'package:rxdart/rxdart.dart';
 import '../models/radio_station.dart'; 
 
 // --- FUNÇÃO AUXILIAR DE CRIAÇÃO DO MEDIA ITEM (Mantida) ---
@@ -20,9 +20,9 @@ MediaItem createMediaItem(RadioStation station) {
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
   
-  // NOVO: Stream para guardar e emitir o último erro de reprodução
+  // Stream para guardar e emitir o último erro de reprodução
   final _currentError = BehaviorSubject<String?>.seeded(null);
-  Stream<String?> get currentError => _currentError.stream; // Getter público
+  Stream<String?> get currentError => _currentError.stream;
 
   AudioPlayerHandler() { _init(); }
   
@@ -45,9 +45,8 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     this.mediaItem.add(mediaItem);
   }
   
-  // --- MÉTODO playStation ATUALIZADO com User-Agent, Erro e await play() ---
+  // --- MÉTODO playStation APRIMORADO ---
   Future<void> playStation(RadioStation station) async {
-    // 1. Limpa o erro anterior antes de tentar tocar um novo
     _currentError.add(null); 
     await RadioStation.saveStation(station); 
     final mediaItem = createMediaItem(station); 
@@ -66,17 +65,17 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       await _player.setAudioSource(audioSource);
       
       this.mediaItem.add(mediaItem);
-      await play(); // <<< AGORA FORÇA O INÍCIO DA REPRODUÇÃO
+      await play(); // Força o início da reprodução
 
     } catch (e) {
-      // 2. Captura a mensagem de erro
-      final errorMessage = 'Falha ao tocar ${station.name}. Causa: ${e.toString().split(':').first}';
+      // Captura a mensagem de erro e mostra apenas a parte mais relevante (o tipo do erro)
+      final errorMessage = 'Falha ao tocar ${station.name}. Erro: ${e.toString().split(':').first.trim()}';
       
-      // 3. Armazena a mensagem de erro para ser exibida na tela
+      // Armazena a mensagem de erro para ser exibida na tela
       _currentError.add(errorMessage); 
       
-      // 4. Para o player para limpar o estado
-      stop();
+      // Limpa o player
+      await stop(); 
     }
   }
   
@@ -93,6 +92,8 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     if (mediaItem.value != null) {
       mediaItem.add(null);
     }
+    // Remove o erro ao parar
+    _currentError.add(null); 
     await super.stop();
   }
   
